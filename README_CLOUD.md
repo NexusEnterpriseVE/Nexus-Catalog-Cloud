@@ -33,7 +33,7 @@ La app de escritorio optimiza las imágenes antes del envío. El endpoint rechaz
 - pedidos online;
 - pagos online;
 - Nexus LAN / Multi-PC.
-
+Deployment refresh CATALOG01
 ## Empezar
 1. Lee `docs/DEPLOY_VERCEL_SUPABASE.md`.
 2. Ejecuta `supabase/schema.sql` en Supabase.
