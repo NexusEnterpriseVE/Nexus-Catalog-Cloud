@@ -15,6 +15,7 @@ Catálogo público multiempresa para Nexus Enterprise Pro.
 - branding por empresa: logo, color, textos y tema;
 - sincronización desde Nexus Enterprise Pro;
 - costos, proveedores, usuarios, caja, deudas y auditoría nunca se publican.
+- Deploy V3.0.1
 
 ## Rutas públicas
 - `/c/<slug>`
