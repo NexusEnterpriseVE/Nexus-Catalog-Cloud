@@ -52,3 +52,5 @@ El build npm/Vercel real requiere instalar las dependencias del proyecto en un e
 
 ## Hotfix 0.1.1
 Las Vercel Functions en `api/*.ts` usan el Web Handler nativo mediante `export default { fetch(request) { ... } }`, compatible con el runtime Node.js actual de Vercel.
+
+Deploy v0.1.3
