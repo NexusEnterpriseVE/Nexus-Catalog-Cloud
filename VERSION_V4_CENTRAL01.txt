@@ -1,0 +1,5 @@
+Nexus Catalog Cloud
+Version: 4.0.0
+Build: CENTRAL01
+Compatible con Nexus Enterprise Pro V3.6.0 CATALOGCENTRAL01 UIFIX01
+Fecha: 2026-08-18

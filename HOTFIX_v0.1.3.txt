@@ -1,0 +1,1 @@
+Histórico: corrección del panel admin previa a V3. Conservado solo como referencia.
