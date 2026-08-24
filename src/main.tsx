@@ -50,6 +50,15 @@ function money(v:number,currency='USD'){
 }
 function bs(v:number){return `Bs ${Number(v||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})}`}
 function phoneDigits(v=''){return v.replace(/\D/g,'')}
+function normalizeWhatsAppPhone(v=''){
+  let p=phoneDigits(v)
+  if(!p)return ''
+  if(p.startsWith('00'))p=p.slice(2)
+  // Venezuela: convierte formatos locales 04XX... / 4XX... a E.164 para wa.me.
+  if(/^0(?:4\d{9})$/.test(p))return `58${p.slice(1)}`
+  if(/^4\d{9}$/.test(p))return `58${p}`
+  return p
+}
 function productUrl(slug:string,id:number){return `/c/${encodeURIComponent(slug)}/p/${id}`}
 function collectionUrl(slug:string,params:Record<string,string>={}){
   const q=new URLSearchParams(params).toString()
@@ -71,7 +80,7 @@ function persist<T>(kind:string,slug:string,value:T){localStorage.setItem(storag
 function snapshot(p:Product,slug:string,variant?:Variant|null):StoredProduct{
   return {id:p.source_product_id,name:p.name,sku:variant?.sku||p.sku,brand:p.brand,model:p.model,priceUsd:variant?.price_usd??p.price_usd,priceBs:variant?.price_bs??p.price_bs,imageUrl:variant?.image_url||p.image_url,variantId:variant?.source_product_id||null,variantLabel:variant?.label||'',hasVariants:(p.variant_count||1)>1,url:location.origin+productUrl(slug,p.source_product_id)}
 }
-function openWhatsApp(phone:string,text:string){const p=phoneDigits(phone);return p?`https://wa.me/${p}?text=${encodeURIComponent(text)}`:''}
+function openWhatsApp(phone:string,text:string){const p=normalizeWhatsAppPhone(phone);return p?`https://wa.me/${p}?text=${encodeURIComponent(text)}`:''}
 function cuyraLeadUrl(context='catálogo'){return openWhatsApp(CUYRA_PHONE,`Hola CUYRA, vi su solución de ${context} y quiero conocer más.`)}
 function setMeta(name:string,content:string,property=false){
   const selector=property?`meta[property="${name}"]`:`meta[name="${name}"]`
@@ -372,7 +381,7 @@ function ProductDetail({slug,productId}:{slug:string;productId:number}){
   const changeQty=(id:number,n:number,variantId?:number|null)=>setOrder(old=>{const next=old.map(x=>x.id===id&&(x.variantId||null)===(variantId||null)?{...x,qty:Math.max(1,n)}:x);persist('order',slug,next);return next})
   const removeOrder=(id:number,variantId?:number|null)=>setOrder(old=>{const next=old.filter(x=>!(x.id===id&&(x.variantId||null)===(variantId||null)));persist('order',slug,next);return next})
   const share=async()=>{try{if(navigator.share)await navigator.share({title:p.name,text:`${p.name} · ${money(selectedPrice)}`,url:location.href});else{await navigator.clipboard.writeText(location.href);setCopied(true);setTimeout(()=>setCopied(false),1600)}track(slug,'share',{productId:p.source_product_id})}catch{}}
-  return <div className={`app theme-${data.tenant.catalog_theme||'retail'}`} style={{'--accent':data.tenant.accent_color||'#1368ff','--tenant-accent':data.tenant.accent_color||'#1368ff'} as React.CSSProperties}>
+  return <div className={`app product-page theme-${data.tenant.catalog_theme||'retail'}`} style={{'--accent':data.tenant.accent_color||'#1368ff','--tenant-accent':data.tenant.accent_color||'#1368ff'} as React.CSSProperties}>
     <Header tenant={nav.tenant||data.tenant} facets={nav.facets} favoriteCount={favorites.length} orderCount={orderCount} onFavorites={()=>setFavoritesOpen(true)} onOrder={()=>setOrderOpen(true)}/>
     <main>
       <nav className="breadcrumbs"><a href={collectionUrl(slug)}><ArrowLeft size={14}/> Catálogo</a><span>/</span>{p.category&&<><a href={collectionUrl(slug,{category:p.category})}>{p.category}</a><span>/</span></>}<b>{p.name}</b></nav>
@@ -395,6 +404,10 @@ function ProductDetail({slug,productId}:{slug:string;productId:number}){
     {orderOpen&&<OrderDrawer tenant={data.tenant} items={order} onClose={()=>setOrderOpen(false)} onChange={changeQty} onRemove={removeOrder}/>} 
     {orderCount>0&&<button className="floating-order" onClick={()=>setOrderOpen(true)}><ShoppingBag/><span>Lista</span><b>{orderCount}</b></button>}
     {phone&&<a className="floating-wa" href={openWhatsApp(phone,`Hola ${data.tenant.public_name}, vengo del catálogo y quisiera recibir atención.`)} target="_blank" rel="noreferrer" aria-label="Contactar por WhatsApp"><MessageCircle/></a>}
+    <div className="mobile-purchase-dock" aria-label="Acciones de compra">
+      <button className="mobile-dock-list" onClick={()=>setOrderOpen(true)}><ShoppingBag/><span>Lista</span>{orderCount>0&&<b>{orderCount}</b>}</button>
+      {phone&&<a className="mobile-dock-wa" href={openWhatsApp(phone,productPurchaseText(data.tenant,p,selected,qty))} target="_blank" rel="noreferrer" onClick={()=>track(slug,'whatsapp_order',{productId:p.source_product_id,variantId:selected?.source_product_id||null,qty,total:selectedPrice*qty,source:'mobile_dock'})}><MessageCircle/><span>Pedir por WhatsApp</span></a>}
+    </div>
     <Footer tenant={data.tenant}/>
   </div>
 }
