@@ -1,5 +1,6 @@
-Nexus Catalog Cloud
-Version: 4.0.0
-Build: CENTRAL01
-Compatible con Nexus Enterprise Pro V3.6.0 CATALOGCENTRAL01 UIFIX01
-Fecha: 2026-08-18
+CUYRA Catalog Cloud
+Version: 4.1.0
+Build: UI02 + COMMERCEUX01 + CATALOGANALYTICS01 + PWA01
+Base técnica: V4 CENTRAL01 (producto padre + variantes + Sofía)
+Repositorio compatible: NexusEnterpriseVE/Nexus-Catalog-Cloud
+Fecha: 2026-08-23
