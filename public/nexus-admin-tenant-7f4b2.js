@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const VERSION = "4.0.0";
+  const VERSION = "4.1.0";
   const $ = (id) => document.getElementById(id);
 
   function boot() {
@@ -13,7 +13,7 @@
     const testBackendBtn = $("testBackend");
 
     if (!runtime || !out || !createBtn || !rotateBtn || !rotateSofiaBtn || !testBackendBtn) {
-      console.error("Nexus Catalog Admin: DOM incompleto");
+      console.error("CUYRA Catalog Admin: DOM incompleto");
       return;
     }
 
