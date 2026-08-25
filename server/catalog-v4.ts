@@ -26,6 +26,7 @@ export type CatalogRow = {
   stock_exact:number
   availability:'available'|'out'
   image_url:string|null
+  gallery_urls:string[]
   updated_at:string
   public_visible:boolean
   published:boolean
@@ -50,6 +51,7 @@ export type PublicVariant = {
   stock_exact:number|null
   availability:'available'|'out'|null
   image_url:string|null
+  gallery_urls:string[]
 }
 
 export type PublicGroup = {
@@ -73,6 +75,7 @@ export type PublicGroup = {
   stock_exact:number|null
   availability:'available'|'out'|null
   image_url:string|null
+  gallery_urls:string[]
   updated_at:string
   variant_count:number
   variant_labels:string[]
@@ -128,7 +131,8 @@ export function buildPublicGroups(rows:CatalogRow[],policy:CatalogTenantPolicy):
       price_bs:n(x.price_bs),
       stock_exact:publicStock(policy,n(x.stock_exact)),
       availability:publicAvailability(policy,n(x.stock_exact)),
-      image_url:x.image_url||null
+      image_url:x.image_url||null,
+      gallery_urls:Array.isArray(x.gallery_urls)&&x.gallery_urls.length?x.gallery_urls:(x.image_url?[x.image_url]:[])
     }))
     out.push({
       source_product_id:rep.source_product_id,
@@ -139,7 +143,7 @@ export function buildPublicGroups(rows:CatalogRow[],policy:CatalogTenantPolicy):
       description:s(rep.description),category:s(rep.category),subcategory:s(rep.subcategory),brand:s(rep.brand),model:s(rep.model),features:s(rep.features),
       featured:arr.some(x=>!!x.featured),
       price_usd:min,price_usd_max:max,price_bs:minBs,price_bs_max:maxBs,has_price_range:Math.abs(max-min)>0.004,
-      stock_exact:publicStock(policy,stock),availability:publicAvailability(policy,stock),image_url:rep.image_url||null,updated_at:updated,
+      stock_exact:publicStock(policy,stock),availability:publicAvailability(policy,stock),image_url:rep.image_url||null,gallery_urls:Array.isArray(rep.gallery_urls)&&rep.gallery_urls.length?rep.gallery_urls:(rep.image_url?[rep.image_url]:[]),updated_at:updated,
       variant_count:variants.length,variant_labels:variants.map(v=>v.label).filter(Boolean),variants
     })
   }
@@ -161,11 +165,11 @@ export function buildSofiaGroups(rows:CatalogRow[]){
       name:s(rep.name)||s(rep.group_name)||s(rep.variant_name),
       description:s(rep.description),category:s(rep.category),subcategory:s(rep.subcategory),brand:s(rep.brand),model:s(rep.model),features:s(rep.features),
       aliases:s(rep.sofia_aliases),tags:s(rep.sofia_tags),notes:s(rep.sofia_notes),price_divisas:rep.sofia_price_divisas===null?null:n(rep.sofia_price_divisas),rules:attrs(rep.sofia_rules_json),
-      price_usd:Math.min(...prices),price_usd_max:Math.max(...prices),stock_exact:stock,availability:stock>0?'available':'out',image_url:rep.image_url||null,
+      price_usd:Math.min(...prices),price_usd_max:Math.max(...prices),stock_exact:stock,availability:stock>0?'available':'out',image_url:rep.image_url||null,gallery_urls:Array.isArray(rep.gallery_urls)&&rep.gallery_urls.length?rep.gallery_urls:(rep.image_url?[rep.image_url]:[]),
       variant_count:arr.length,
       variants:arr.map(x=>({
         source_product_id:x.source_product_id,sku:s(x.sku),label:s(x.variant_label)||s(x.variant_name)||s(x.sku),attributes:attrs(x.variant_attributes),name:s(x.variant_name)||s(x.name),
-        price_usd:n(x.price_usd),price_bs:n(x.price_bs),stock_exact:Math.max(0,Math.trunc(n(x.stock_exact))),availability:n(x.stock_exact)>0?'available':'out',image_url:x.image_url||null
+        price_usd:n(x.price_usd),price_bs:n(x.price_bs),stock_exact:Math.max(0,Math.trunc(n(x.stock_exact))),availability:n(x.stock_exact)>0?'available':'out',image_url:x.image_url||null,gallery_urls:Array.isArray(x.gallery_urls)&&x.gallery_urls.length?x.gallery_urls:(x.image_url?[x.image_url]:[])
       }))
     }
   })

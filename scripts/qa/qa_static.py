@@ -30,13 +30,13 @@ need('api/admin-rotate-sofia-token.ts','randomSofiaToken','sofia_read_token_hash
 need('src/main.tsx','CUYRA Catalog','AnnouncementBar','CuyraLanding','SearchSuggestions','ProductCard','OrderDrawer','FavoritesDrawer','RecentStrip','Pedir por WhatsApp','Consultar disponibilidad','Productos relacionados','Powered by','serviceWorker')
 need('src/styles.css','announcement-track','category-cards','search-suggestions','commerce-drawer','product-detail','catalog-footer','no-tenant-app','@media(max-width:560px)')
 need('public/manifest.webmanifest','CUYRA Catalog','cuyra-icon-192.png')
-need('public/sw.js','cuyra-catalog-v4.1.0','/api/')
+need('public/sw.js','cuyra-catalog-v4.2.0','/api/')
 need('index.html','CUYRA Catalog','manifest.webmanifest')
 need('api/analytics.ts','catalog_events','whatsapp_order','favorite')
 need('api/admin-analytics.ts','requireAdmin','topProducts','topSearches','topCategories')
-need('api/health.ts','CUYRA Catalog Cloud','4.1.0')
-need('public/nexus-admin-tenant-7f4b2.html','noindex,nofollow,noarchive','CUYRA Catalog Cloud','V4.1.0')
-need('public/nexus-admin-tenant-7f4b2.js','admin-rotate-sofia-token','x-admin-secret','VERSION = "4.1.0"')
+need('api/health.ts','CUYRA Catalog Cloud','4.2.0')
+need('public/nexus-admin-tenant-7f4b2.html','noindex,nofollow,noarchive','CUYRA Catalog Cloud','V4.2.0')
+need('public/nexus-admin-tenant-7f4b2.js','admin-rotate-sofia-token','x-admin-secret','VERSION = "4.2.0"')
 need('.env.example','SUPABASE_SERVICE_ROLE_KEY','NEXUS_CATALOG_ADMIN_SECRET')
 
 # No visible old brand in public storefront/admin shell.

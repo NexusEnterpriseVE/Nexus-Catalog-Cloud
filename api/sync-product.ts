@@ -38,6 +38,8 @@ type ProductPayload = {
   imageBase64?:string|null
   imageMime?:string|null
   imageRemove?:boolean
+  galleryImages?:Array<{base64:string;mime?:string;position?:number;isPrimary?:boolean;hash?:string}>|null
+  galleryReplace?:boolean
   updatedAt?:string
 }
 type Input={idempotencyKey:string;product:ProductPayload}
@@ -66,12 +68,22 @@ async function handlePOST(request:Request){
     if(prior.data)return json({ok:true,duplicate:true})
 
     let imageUrl:string|null|undefined=undefined
+    let galleryUrls:string[]|undefined=undefined
     const bucket=storageBucket()
-    if(p.imageRemove){
+    if(p.galleryReplace&&Array.isArray(p.galleryImages)){
+      const incoming=p.galleryImages.slice(0,5).sort((a,b)=>((b.isPrimary?1:0)-(a.isPrimary?1:0)) || (Number(a.position||0)-Number(b.position||0)))
+      const stale:string[]=[];for(let i=0;i<5;i++){stale.push(`${tenant.slug}/${p.sourceProductId}/gallery-${i}.jpg`,`${tenant.slug}/${p.sourceProductId}/gallery-${i}.png`)}
+      await db.storage.from(bucket).remove(stale)
+      galleryUrls=[]
+      let total=0
+      for(let i=0;i<incoming.length;i++){const img=incoming[i];if(!img?.base64)continue;const binary=Buffer.from(img.base64,'base64');total+=binary.byteLength;if(binary.byteLength>900_000||total>4_200_000)return json({ok:false,error:'Galería supera el límite seguro de sincronización'},{status:413});const mime=img.mime==='image/png'?'image/png':'image/jpeg',ext=mime==='image/png'?'png':'jpg',path=`${tenant.slug}/${p.sourceProductId}/gallery-${i}.${ext}`;const {error:uploadError}=await db.storage.from(bucket).upload(path,binary,{upsert:true,contentType:mime,cacheControl:'86400'});if(uploadError)throw new Error(uploadError.message);galleryUrls.push(db.storage.from(bucket).getPublicUrl(path).data.publicUrl)}
+      imageUrl=galleryUrls[0]??null
+    }
+    if(p.imageRemove&&!p.galleryReplace){
       await db.storage.from(bucket).remove([`${tenant.slug}/${p.sourceProductId}.jpg`,`${tenant.slug}/${p.sourceProductId}.png`])
       imageUrl=null
     }
-    if(p.imageBase64){
+    if(p.imageBase64&&!p.galleryReplace){
       const binary=Buffer.from(p.imageBase64,'base64')
       if(binary.byteLength>2_800_000)return json({ok:false,error:'Imagen cloud supera 2.8 MB después de optimizar'},{status:413})
       const mime=p.imageMime==='image/png'?'image/png':'image/jpeg',ext=mime==='image/png'?'png':'jpg',other=ext==='png'?'jpg':'png'
@@ -96,6 +108,7 @@ async function handlePOST(request:Request){
       catalog_protocol:protocol,source_updated_at:p.updatedAt||new Date().toISOString(),updated_at:new Date().toISOString()
     }
     if(imageUrl!==undefined)row.image_url=imageUrl
+    if(galleryUrls!==undefined)row.gallery_urls=galleryUrls
 
     const {error:upsertError}=await db.from('catalog_products').upsert(row,{onConflict:'tenant_id,source_product_id'})
     if(upsertError)throw new Error(upsertError.message)
@@ -107,7 +120,7 @@ async function handlePOST(request:Request){
 
     const {error:receiptError}=await db.from('catalog_sync_receipts').insert({tenant_id:tenant.id,idempotency_key:input.idempotencyKey,entity_type:'product',source_entity_id:p.sourceProductId})
     if(receiptError&&!String(receiptError.code||'').includes('23505'))throw new Error(receiptError.message)
-    return json({ok:true,duplicate:false,catalogProtocol:protocol,sourceGroupId,imageUrl:imageUrl??null})
+    return json({ok:true,duplicate:false,catalogProtocol:protocol,sourceGroupId,imageUrl:imageUrl??null,galleryCount:galleryUrls?.length??null})
   }catch(e){return err(e)}
 }
 

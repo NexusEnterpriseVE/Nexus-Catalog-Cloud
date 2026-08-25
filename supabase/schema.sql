@@ -56,6 +56,7 @@ create table if not exists public.catalog_products (
   stock_exact bigint not null default 0 check(stock_exact>=0),
   availability text not null default 'available' check(availability in ('available','out')),
   image_url text,
+  gallery_urls jsonb not null default '[]'::jsonb,
   published boolean not null default true,
   active boolean not null default true,
   source_updated_at timestamptz,
@@ -63,6 +64,8 @@ create table if not exists public.catalog_products (
   unique(tenant_id,source_product_id)
 );
 
+alter table public.catalog_products add column if not exists gallery_urls jsonb not null default '[]'::jsonb;
+update public.catalog_products set gallery_urls=jsonb_build_array(image_url) where image_url is not null and jsonb_array_length(gallery_urls)=0;
 alter table public.catalog_products add column if not exists brand text not null default '';
 alter table public.catalog_products add column if not exists model text not null default '';
 alter table public.catalog_products add column if not exists features text not null default '';

@@ -3,7 +3,7 @@ import { err, json } from '../server/http.js'
 import { buildPublicGroups, rowGroupKey, type CatalogRow } from '../server/catalog-v4.js'
 
 const SLUG=/^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$/
-const ROWS=`source_product_id,source_group_id,group_code,group_name,variant_count,variant_label,variant_attributes,variant_name,sku,name,description,category,subcategory,brand,model,features,featured,price_usd,price_bs,stock_exact,availability,image_url,updated_at,public_visible,published,active,sofia_visible,sofia_approved,sofia_aliases,sofia_tags,sofia_notes,sofia_price_divisas,sofia_rules_json`
+const ROWS=`source_product_id,source_group_id,group_code,group_name,variant_count,variant_label,variant_attributes,variant_name,sku,name,description,category,subcategory,brand,model,features,featured,price_usd,price_bs,stock_exact,availability,image_url,gallery_urls,updated_at,public_visible,published,active,sofia_visible,sofia_approved,sofia_aliases,sofia_tags,sofia_notes,sofia_price_divisas,sofia_rules_json`
 
 async function fetchPublicRows(db:any,tenantId:string,limit=6000){
   const out:CatalogRow[]=[];const batch=1000

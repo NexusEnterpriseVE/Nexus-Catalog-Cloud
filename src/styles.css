@@ -374,3 +374,16 @@ linear-gradient(120deg,#06101d 0%,#0a1a31 48%,color-mix(in srgb,var(--tenant-acc
   .product-image{padding:10px}
   .product-card:hover .product-image img{transform:none}
 }
+
+/* CUYRA Catalog V4.2 GALLERY01 */
+.detail-main-image{display:block;width:100%;height:100%;padding:0;border:0;background:transparent;cursor:zoom-in}.detail-main-image img{width:100%;height:100%;object-fit:contain;display:block}.product-gallery-thumbs{display:flex;gap:9px;overflow-x:auto;padding:4px 1px 8px;scroll-snap-type:x proximity}.product-gallery-thumbs button{flex:0 0 76px;width:76px;height:76px;border:1px solid var(--line,#e5e7eb);border-radius:12px;padding:4px;background:#fff;overflow:hidden;scroll-snap-align:start;cursor:pointer}.product-gallery-thumbs button.active{border-color:var(--accent,#2563eb);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent,#2563eb) 18%,transparent)}.product-gallery-thumbs img{width:100%;height:100%;object-fit:contain}.gallery-lightbox{position:fixed;inset:0;z-index:3000;background:rgba(3,7,18,.94);display:flex;align-items:center;justify-content:center;padding:28px}.gallery-lightbox img{max-width:min(96vw,1400px);max-height:90vh;object-fit:contain}.gallery-lightbox>span{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);color:#fff;background:rgba(0,0,0,.45);padding:6px 11px;border-radius:999px;font-weight:700}.gallery-lightbox-close{position:absolute;right:18px;top:18px;width:44px;height:44px;border-radius:999px;border:1px solid rgba(255,255,255,.25);background:rgba(15,23,42,.7);color:#fff;display:grid;place-items:center;cursor:pointer}
+@media(max-width:720px){.product-gallery-thumbs button{flex-basis:64px;width:64px;height:64px}.detail-media{touch-action:pan-y}.gallery-lightbox{padding:12px}.gallery-lightbox img{max-width:100vw;max-height:86vh}}
+
+/* GALLERY01 · navegación multiimagen */
+.detail-media{position:relative;touch-action:pan-y}
+.gallery-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:4;width:38px;height:38px;border-radius:999px;border:1px solid rgba(15,23,42,.12);background:rgba(255,255,255,.9);display:grid;place-items:center;box-shadow:0 8px 24px rgba(15,23,42,.12);cursor:pointer}
+.gallery-arrow.prev{left:12px}.gallery-arrow.next{right:12px}.gallery-arrow svg{width:20px;height:20px}
+.gallery-counter{position:absolute;right:12px;bottom:12px;z-index:4;padding:5px 9px;border-radius:999px;background:rgba(15,23,42,.72);color:white;font-size:12px;font-weight:700;backdrop-filter:blur(8px)}
+.gallery-lightbox-nav{position:fixed;top:50%;transform:translateY(-50%);z-index:3;width:48px;height:48px;border:1px solid rgba(255,255,255,.25);border-radius:999px;background:rgba(0,0,0,.38);color:#fff;display:grid;place-items:center;cursor:pointer}
+.gallery-lightbox-nav.prev{left:22px}.gallery-lightbox-nav.next{right:22px}
+@media(max-width:560px){.gallery-arrow{width:34px;height:34px}.gallery-lightbox-nav{display:none}.gallery-counter{bottom:10px;right:10px}}
