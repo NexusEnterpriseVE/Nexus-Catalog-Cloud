@@ -21,6 +21,10 @@ type ProductPayload = {
   model?:string
   features?:string
   featured?:boolean
+  recommended?:boolean
+  compareAtPriceUsd?:number|null
+  compareAtPriceBs?:number|null
+  promoBadge?:string
   priceUsd:number
   priceBs:number
   stockExact:number
@@ -107,6 +111,12 @@ async function handlePOST(request:Request){
       sofia_price_divisas:p.sofiaPriceDivisas===null||p.sofiaPriceDivisas===undefined?null:Number(p.sofiaPriceDivisas),sofia_rules_json:obj(p.sofiaRules),
       catalog_protocol:protocol,source_updated_at:p.updatedAt||new Date().toISOString(),updated_at:new Date().toISOString()
     }
+    // Campos comerciales V4.4 son opcionales para mantener compatibilidad con Principal anteriores.
+    // Si el cliente de sincronización no los envía, NO se pisan valores configurados en Cloud/Admin.
+    if(p.recommended!==undefined)row.recommended=!!p.recommended
+    if(p.compareAtPriceUsd!==undefined)row.compare_at_price_usd=p.compareAtPriceUsd===null?null:Math.max(0,Number(p.compareAtPriceUsd)||0)
+    if(p.compareAtPriceBs!==undefined)row.compare_at_price_bs=p.compareAtPriceBs===null?null:Math.max(0,Number(p.compareAtPriceBs)||0)
+    if(p.promoBadge!==undefined)row.promo_badge=txt(p.promoBadge,60)
     if(imageUrl!==undefined)row.image_url=imageUrl
     if(galleryUrls!==undefined)row.gallery_urls=galleryUrls
 

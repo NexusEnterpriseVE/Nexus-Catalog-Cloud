@@ -1,48 +1,32 @@
 import { adminDb } from '../server/supabase.js'
 import { err, json } from '../server/http.js'
 import { buildPublicGroups, rowGroupKey, type CatalogRow } from '../server/catalog-v4.js'
+import { sha256 } from '../server/security.js'
 
 const SLUG=/^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$/
-const ROWS=`source_product_id,source_group_id,group_code,group_name,variant_count,variant_label,variant_attributes,variant_name,sku,name,description,category,subcategory,brand,model,features,featured,price_usd,price_bs,stock_exact,availability,image_url,gallery_urls,updated_at,public_visible,published,active,sofia_visible,sofia_approved,sofia_aliases,sofia_tags,sofia_notes,sofia_price_divisas,sofia_rules_json`
-
-async function fetchPublicRows(db:any,tenantId:string,limit=6000){
-  const out:CatalogRow[]=[];const batch=1000
-  for(let from=0;from<limit;from+=batch){
-    const {data,error}=await db.from('catalog_products').select(ROWS).eq('tenant_id',tenantId).eq('published',true).eq('public_visible',true).eq('active',true).range(from,Math.min(limit-1,from+batch-1))
-    if(error)throw new Error(error.message)
-    const rows=(data||[]) as CatalogRow[];out.push(...rows);if(rows.length<batch)break
-  }
-  return out
-}
+const ROWS=`source_product_id,source_group_id,group_code,group_name,variant_count,variant_label,variant_attributes,variant_name,sku,name,description,category,subcategory,brand,model,features,featured,recommended,compare_at_price_usd,compare_at_price_bs,promo_badge,price_usd,price_bs,stock_exact,availability,image_url,gallery_urls,updated_at,public_visible,published,active,sofia_visible,sofia_approved,sofia_aliases,sofia_tags,sofia_notes,sofia_price_divisas,sofia_rules_json`
+const TENANT=`id,slug,public_name,phone,website,accent_color,show_stock_mode,hide_out_of_stock,rate_bs_per_usd,rate_source,logo_url,hero_title,hero_subtitle,announcement,catalog_theme,instagram_url,location_text,show_brand_filter,show_category_nav,catalog_protocol,variant_mode,banners_json,commerce_settings_json,home_sections_json`
+async function fetchPublicRows(db:any,tenantId:string,limit=6000){const out:CatalogRow[]=[];const batch=1000;for(let from=0;from<limit;from+=batch){const {data,error}=await db.from('catalog_products').select(ROWS).eq('tenant_id',tenantId).eq('published',true).eq('public_visible',true).eq('active',true).range(from,Math.min(limit-1,from+batch-1));if(error)throw new Error(error.message);const rows=(data||[]) as CatalogRow[];out.push(...rows);if(rows.length<batch)break}return out}
+async function approvedReviews(db:any,tenantId:string,target:any){let q=db.from('catalog_product_reviews').select('id,rating,display_name,comment,created_at').eq('tenant_id',tenantId).eq('approved',true).order('created_at',{ascending:false}).limit(5000);q=target.source_group_id?q.eq('source_group_id',target.source_group_id):q.eq('source_product_id',target.source_product_id);const {data,error}=await q;if(error){if(String(error.message||'').toLowerCase().includes('catalog_product_reviews'))return [];throw new Error(error.message)}return data||[]}
+function ratings(reviews:any[]){const count=reviews.length;return {rating_value:count?Math.round(reviews.reduce((s,r)=>s+Number(r.rating||0),0)/count*10)/10:0,rating_count:count}}
+async function ratingMap(db:any,tenantId:string){const out=new Map<string,{sum:number,count:number}>();const {data,error}=await db.from('catalog_product_reviews').select('source_product_id,source_group_id,rating').eq('tenant_id',tenantId).eq('approved',true).limit(5000);if(error){if(String(error.message||'').toLowerCase().includes('catalog_product_reviews'))return out;throw new Error(error.message)}for(const r of data||[]){const k=r.source_group_id?`g:${r.source_group_id}`:`p:${r.source_product_id}`,x=out.get(k)||{sum:0,count:0};x.sum+=Number(r.rating)||0;x.count++;out.set(k,x)}return out}
+function withRating(g:any,map:Map<string,{sum:number,count:number}>){const k=g.source_group_id?`g:${g.source_group_id}`:`p:${g.source_product_id}`,x=map.get(k);return {...g,rating_value:x&&x.count?Math.round(x.sum/x.count*10)/10:0,rating_count:x?.count||0}}
 
 async function handleGET(request:Request){
-  try{
-    const url=new URL(request.url),slug=(url.searchParams.get('slug')||'').trim().toLowerCase(),sourceProductId=Number(url.searchParams.get('productId'))
-    if(!SLUG.test(slug)||!Number.isInteger(sourceProductId)||sourceProductId<=0)return json({ok:false,error:'Producto inválido'},{status:400})
-    const db=adminDb()
-    const {data:tenant,error:tErr}=await db.from('catalog_tenants').select('id,slug,public_name,phone,website,accent_color,show_stock_mode,hide_out_of_stock,rate_bs_per_usd,rate_source,logo_url,hero_title,hero_subtitle,announcement,catalog_theme,instagram_url,location_text,show_brand_filter,show_category_nav,catalog_protocol,variant_mode').eq('slug',slug).eq('active',true).maybeSingle()
-    if(tErr)throw new Error(tErr.message);if(!tenant)return json({ok:false,error:'Catálogo no encontrado'},{status:404})
-
-    const {data:target,error:targetErr}=await db.from('catalog_products').select(ROWS).eq('tenant_id',tenant.id).eq('source_product_id',sourceProductId).eq('published',true).eq('public_visible',true).eq('active',true).maybeSingle()
-    if(targetErr)throw new Error(targetErr.message);if(!target)return json({ok:false,error:'Producto no encontrado'},{status:404})
-
-    let groupRows:CatalogRow[]=[]
-    if(target.source_group_id){
-      const {data,error}=await db.from('catalog_products').select(ROWS).eq('tenant_id',tenant.id).eq('source_group_id',target.source_group_id).eq('published',true).eq('public_visible',true).eq('active',true)
-      if(error)throw new Error(error.message);groupRows=(data||[]) as CatalogRow[]
-    }else groupRows=[target as CatalogRow]
-    const product=buildPublicGroups(groupRows,tenant)[0]
-    if(!product)return json({ok:false,error:'Producto no disponible'},{status:404})
-
-    const allRows=await fetchPublicRows(db,tenant.id)
-    const currentKey=rowGroupKey(target as CatalogRow)
-    const related=buildPublicGroups(allRows,tenant).filter(g=>{
-      const key=g.source_group_id?`g:${g.source_group_id}`:`p:${g.source_product_id}`
-      return key!==currentKey&&(!product.category||g.category===product.category)
-    }).sort((a,b)=>Number(b.featured)-Number(a.featured)||a.name.localeCompare(b.name,'es')).slice(0,8).map(g=>({...g,variants:undefined}))
-
-    const {id,...tenantPublic}=tenant as any
-    return json({ok:true,tenant:tenantPublic,product,related,protocol:'v4-grouped'})
+  try{const url=new URL(request.url),slug=(url.searchParams.get('slug')||'').trim().toLowerCase(),sourceProductId=Number(url.searchParams.get('productId'));if(!SLUG.test(slug)||!Number.isInteger(sourceProductId)||sourceProductId<=0)return json({ok:false,error:'Producto inválido'},{status:400});const db=adminDb();const {data:tenant,error:tErr}=await db.from('catalog_tenants').select(TENANT).eq('slug',slug).eq('active',true).maybeSingle();if(tErr)throw new Error(tErr.message);if(!tenant)return json({ok:false,error:'Catálogo no encontrado'},{status:404})
+    const {data:target,error:targetErr}=await db.from('catalog_products').select(ROWS).eq('tenant_id',tenant.id).eq('source_product_id',sourceProductId).eq('published',true).eq('public_visible',true).eq('active',true).maybeSingle();if(targetErr)throw new Error(targetErr.message);if(!target)return json({ok:false,error:'Producto no encontrado'},{status:404})
+    let groupRows:CatalogRow[]=[];if(target.source_group_id){const {data,error}=await db.from('catalog_products').select(ROWS).eq('tenant_id',tenant.id).eq('source_group_id',target.source_group_id).eq('published',true).eq('public_visible',true).eq('active',true);if(error)throw new Error(error.message);groupRows=(data||[]) as CatalogRow[]}else groupRows=[target as CatalogRow]
+    const reviews=await approvedReviews(db,tenant.id,target),score=ratings(reviews),product={...buildPublicGroups(groupRows,tenant)[0],...score};if(!product)return json({ok:false,error:'Producto no disponible'},{status:404})
+    const allRows=await fetchPublicRows(db,tenant.id),ratingLookup=await ratingMap(db,tenant.id),currentKey=rowGroupKey(target as CatalogRow),related=buildPublicGroups(allRows,tenant).filter(g=>{const key=g.source_group_id?`g:${g.source_group_id}`:`p:${g.source_product_id}`;return key!==currentKey&&(!product.category||g.category===product.category)}).sort((a,b)=>Number(b.recommended)-Number(a.recommended)||Number(b.featured)-Number(a.featured)||a.name.localeCompare(b.name,'es')).slice(0,8).map(g=>({...withRating(g,ratingLookup),variants:undefined}));const {id,...tenantPublic}=tenant as any
+    return json({ok:true,tenant:tenantPublic,product,related,reviews:reviews.slice(0,20),protocol:'v4.4-commerce'})
   }catch(e){return err(e)}
 }
-export default{async fetch(request:Request){if(request.method!=='GET')return json({ok:false,error:'Método no permitido'},{status:405});return await handleGET(request)}}
+
+async function handlePOST(request:Request){
+  try{const body=await request.json().catch(()=>({})),slug=String(body?.slug||'').trim().toLowerCase(),sourceProductId=Number(body?.productId),rating=Number(body?.rating);if(!SLUG.test(slug)||body?.action!=='review'||!Number.isInteger(sourceProductId)||sourceProductId<=0||!Number.isInteger(rating)||rating<1||rating>5)return json({ok:false,error:'Valoración inválida'},{status:400});const db=adminDb();const {data:tenant,error:tErr}=await db.from('catalog_tenants').select('id').eq('slug',slug).eq('active',true).maybeSingle();if(tErr)throw new Error(tErr.message);if(!tenant)return json({ok:false,error:'Catálogo no encontrado'},{status:404});const {data:target,error:pErr}=await db.from('catalog_products').select('source_product_id,source_group_id').eq('tenant_id',tenant.id).eq('source_product_id',sourceProductId).eq('published',true).eq('public_visible',true).eq('active',true).maybeSingle();if(pErr)throw new Error(pErr.message);if(!target)return json({ok:false,error:'Producto no disponible'},{status:404})
+    const ip=(request.headers.get('x-forwarded-for')||request.headers.get('x-real-ip')||'anon').split(',')[0].trim(),day=new Date().toISOString().slice(0,10),fingerprint=sha256(`${tenant.id}|${target.source_group_id||target.source_product_id}|${ip}|${day}`),displayName=String(body?.displayName||'').trim().slice(0,60),comment=String(body?.comment||'').trim().slice(0,700)
+    const {data:prior}=await db.from('catalog_product_reviews').select('id').eq('tenant_id',tenant.id).eq('fingerprint_hash',fingerprint).maybeSingle();if(prior)return json({ok:false,error:'Ya enviaste una valoración para este producto hoy.'},{status:429})
+    const {error}=await db.from('catalog_product_reviews').insert({tenant_id:tenant.id,source_product_id:target.source_product_id,source_group_id:target.source_group_id||null,rating,display_name:displayName,comment,approved:false,fingerprint_hash:fingerprint});if(error)throw new Error(error.message);return json({ok:true,pending:true,message:'Gracias. Tu valoración fue enviada para revisión.'},{status:201})
+  }catch(e){return err(e)}
+}
+export default{async fetch(request:Request){if(request.method==='GET')return await handleGET(request);if(request.method==='POST')return await handlePOST(request);return json({ok:false,error:'Método no permitido'},{status:405})}}

@@ -8,7 +8,10 @@ type Input = {
   heroTitle?: string; heroSubtitle?: string; announcement?: string; catalogTheme?: 'retail'|'minimal'|'bold';
   showBrandFilter?: boolean; showCategoryNav?: boolean; instagramUrl?: string; locationText?: string;
   logoBase64?: string|null; logoMime?: string|null; logoRemove?: boolean;
-  catalogProtocol?: string; variantMode?: string
+  catalogProtocol?: string; variantMode?: string;
+  banners?: Array<{title?:string;subtitle?:string;imageUrl?:string;mobileImageUrl?:string;ctaLabel?:string;targetType?:string;targetValue?:string}>;
+  commerceSettings?: {deliveryEnabled?:boolean;pickupEnabled?:boolean;pickupLabel?:string;businessHours?:string};
+  homeSections?: string[];
 }
 const ACCENT=/^#[0-9a-fA-F]{6}$/
 
@@ -62,6 +65,9 @@ async function handlePOST(request: Request) {
       location_text:(input.locationText||'').trim().slice(0,220),
       catalog_protocol:(input.catalogProtocol||'v3').trim().slice(0,30)||'v3',
       variant_mode:(input.variantMode||'legacy').trim().slice(0,30)||'legacy',
+      banners_json:Array.isArray(input.banners)?input.banners.slice(0,3).map(b=>({title:String(b?.title||'').trim().slice(0,120),subtitle:String(b?.subtitle||'').trim().slice(0,260),imageUrl:String(b?.imageUrl||'').trim().slice(0,900),mobileImageUrl:String(b?.mobileImageUrl||'').trim().slice(0,900),ctaLabel:String(b?.ctaLabel||'').trim().slice(0,40),targetType:String(b?.targetType||'').trim().slice(0,30),targetValue:String(b?.targetValue||'').trim().slice(0,200)})):tenant.banners_json||[],
+      commerce_settings_json:input.commerceSettings&&typeof input.commerceSettings==='object'?{deliveryEnabled:input.commerceSettings.deliveryEnabled!==false||input.commerceSettings.pickupEnabled===false,pickupEnabled:input.commerceSettings.pickupEnabled!==false,pickupLabel:String(input.commerceSettings.pickupLabel||'Retiro en tienda').trim().slice(0,80),businessHours:String(input.commerceSettings.businessHours||'').trim().slice(0,180)}:tenant.commerce_settings_json||{},
+      home_sections_json:Array.isArray(input.homeSections)?input.homeSections.map(x=>String(x)).filter(x=>['categories','featured','recommended','offers','newest','brands'].includes(x)).slice(0,8):tenant.home_sections_json||[],
       updated_at: new Date().toISOString()
     }
     if(logoUrl!==undefined)update.logo_url=logoUrl
