@@ -21,6 +21,10 @@ export type CatalogRow = {
   model:string
   features:string
   featured:boolean
+  recommended:boolean
+  compare_at_price_usd:number|null
+  compare_at_price_bs:number|null
+  promo_badge:string
   price_usd:number
   price_bs:number
   stock_exact:number
@@ -67,6 +71,10 @@ export type PublicGroup = {
   model:string
   features:string
   featured:boolean
+  recommended:boolean
+  compare_at_price_usd:number|null
+  compare_at_price_bs:number|null
+  promo_badge:string
   price_usd:number
   price_usd_max:number
   price_bs:number
@@ -141,7 +149,8 @@ export function buildPublicGroups(rows:CatalogRow[],policy:CatalogTenantPolicy):
       sku:s(rep.sku),
       name:s(rep.name)||s(rep.group_name)||s(rep.variant_name),
       description:s(rep.description),category:s(rep.category),subcategory:s(rep.subcategory),brand:s(rep.brand),model:s(rep.model),features:s(rep.features),
-      featured:arr.some(x=>!!x.featured),
+      featured:arr.some(x=>!!x.featured),recommended:arr.some(x=>!!x.recommended),
+      compare_at_price_usd:(()=>{const v=arr.map(x=>x.compare_at_price_usd===null||x.compare_at_price_usd===undefined?0:n(x.compare_at_price_usd)).filter(x=>x>0);return v.length?Math.max(...v):null})(),compare_at_price_bs:(()=>{const v=arr.map(x=>x.compare_at_price_bs===null||x.compare_at_price_bs===undefined?0:n(x.compare_at_price_bs)).filter(x=>x>0);return v.length?Math.max(...v):null})(),promo_badge:arr.map(x=>s(x.promo_badge)).find(Boolean)||'',
       price_usd:min,price_usd_max:max,price_bs:minBs,price_bs_max:maxBs,has_price_range:Math.abs(max-min)>0.004,
       stock_exact:publicStock(policy,stock),availability:publicAvailability(policy,stock),image_url:rep.image_url||null,gallery_urls:Array.isArray(rep.gallery_urls)&&rep.gallery_urls.length?rep.gallery_urls:(rep.image_url?[rep.image_url]:[]),updated_at:updated,
       variant_count:variants.length,variant_labels:variants.map(v=>v.label).filter(Boolean),variants
