@@ -1,2 +1,0 @@
-CUYRA Catalog Cloud V4.1.0 HF06 · MEDIAFIT02
-Fix real de recorte de imágenes de producto: box-sizing:border-box + object-fit contain.
