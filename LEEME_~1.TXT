@@ -1,0 +1,17 @@
+CUYRA Catalog V4.4.0 · LEEME PRIMERO
+
+BASE: V4.3.0 MOBILECOMMERCE01 estable.
+ALCANCE: Home/banners + Product UX + ratings reales + pedido + confirmación WhatsApp. SIN COMBOS.
+
+ORDEN CORRECTO:
+1. Guardar el commit V4.3.0 actual como rollback.
+2. Ejecutar MIGRATION_V4.4.0_RUN_FIRST.sql en el Supabase oficial.
+3. Crear rama/Preview en Vercel.
+4. Subir el contenido del GITHUB_REPLACE_PATCH a la RAÍZ del repo.
+5. Confirmar que package.json quede en la raíz.
+6. Esperar Build Success.
+7. Probar /api/health => version 4.4.0 / protocol catalog-v4.4-commerce.
+8. Completar CHECKLIST_PREVIEW.
+9. Solo entonces pasar a Production.
+
+NO borrar variables, secretos, tenants, tokens, tablas ni datos existentes.

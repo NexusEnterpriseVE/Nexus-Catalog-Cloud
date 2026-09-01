@@ -1,0 +1,4 @@
+CUYRA Catalog Cloud V4.4.0
+MOBILECOMMERCE02 + PRODUCTUX01 + RATING01 + WACONFIRM01
+Base: V4.3.0 MOBILECOMMERCE01
+Arquitectura: multi-tenant, sincronización CUYRA, Supabase, Vercel

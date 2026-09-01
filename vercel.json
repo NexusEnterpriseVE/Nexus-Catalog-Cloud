@@ -15,6 +15,22 @@
     {
       "source": "/catalogo/:slug/p/:productId",
       "destination": "/index.html"
+    },
+    {
+      "source": "/c/:slug/pedido",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/c/:slug/pedido/confirmacion",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/catalogo/:slug/pedido",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/catalogo/:slug/pedido/confirmacion",
+      "destination": "/index.html"
     }
   ],
   "headers": [
