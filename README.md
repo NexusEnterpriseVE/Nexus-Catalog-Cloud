@@ -1,4 +1,6 @@
-# CUYRA Catalog Cloud V4.4.0 · MOBILECOMMERCE02 + PRODUCTUX01 + RATING01 + WACONFIRM01
+# CUYRA Catalog Cloud V4.4.1 · MOTIONUX01 + ADMINBANNERUX01
+
+> Update acumulativo sobre V4.4.0. No requiere nueva migración Supabase. Conserva MOBILECOMMERCE02 + PRODUCTUX01 + RATING01 + WACONFIRM01 y añade movimiento/UX y administración visual de banners.
 
 Catálogo cloud multiempresa conectado a **CUYRA**. CUYRA es la fuente de verdad; Catalog Cloud es la proyección online para la tienda pública y consumidores autorizados como Sofía.
 
@@ -116,7 +118,7 @@ Usa un token de lectura propio por tenant. Nunca entregar a Sofía `SUPABASE_SER
 2. Probar este source en una rama/Preview de Vercel.
 3. Ejecutar **solo si quieres analytics** `supabase/migrations/v4_1_catalog_analytics.sql` en el Supabase oficial.
 4. Ejecutar `supabase/migrations/v4_4_mobilecommerce02.sql` en el Supabase oficial.
-5. Verificar `/api/health` → `CUYRA Catalog Cloud`, `4.4.0`.
+5. Verificar `/api/health` → `CUYRA Catalog Cloud`, `4.4.1`.
 6. Probar primero `/c/daca-sport` con productos reales, variantes, filtros, WhatsApp y móvil.
 7. Confirmar que logo/colores/datos de Daca Sport siguen siendo protagonistas.
 8. Solo después hacer merge a `main` / Production.

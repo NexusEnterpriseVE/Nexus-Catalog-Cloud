@@ -1,0 +1,22 @@
+QA REPORT · CUYRA Catalog V4.4.1
+MOTIONUX01 + ADMINBANNERUX01
+
+RESULTADO: PASS (QA estático / sintaxis)
+
+Validado:
+- package.json = 4.4.1
+- /api/health = 4.4.1 / catalog-v4.4.1-motionux
+- Service Worker cache = cuyra-catalog-v4.4.1
+- Carousel: autoplay + pausa + flechas + swipe + progress
+- Scroll reveal y microinteracciones
+- prefers-reduced-motion incluido
+- Admin banners: preview, imagen desktop/móvil, tipo/valor de destino, limpiar
+- Admin JS: node --check PASS
+- TypeScript/TSX: tsc no reportó diagnósticos de sintaxis; los únicos errores fueron módulos/tipos no instalados en este entorno y errores de JSX key derivados de no disponer de tipos React.
+- Serverless functions: 12
+- Supabase schema: SHA-256 idéntico a V4.4.0; no hay migración V4.4.1
+- api/ (excepto health.ts): idéntico a V4.4.0
+
+LIMITACIÓN DEL ENTORNO:
+- npm install agotó el timeout, por lo que no se ejecutó vite build completo aquí.
+- Vercel debe usarse como validación final de build/deploy.
