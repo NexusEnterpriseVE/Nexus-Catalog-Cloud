@@ -27,15 +27,15 @@
     }
     p{color:#9fb0c7;line-height:1.5}
     label{display:grid;gap:7px;margin:15px 0;font-size:13px;font-weight:650}
-    input,textarea{
+    input,textarea,select{
       border-radius:11px;border:1px solid #334155;
       background:#0b1220;color:white;padding:0 12px;outline:none
     }
-    input{
+    input,select{
       height:46px
     }
     textarea{min-height:88px;padding:11px 12px;resize:vertical}
-    input:focus,textarea:focus{border-color:#3b82f6;box-shadow:0 0 0 3px #2563eb22}
+    input:focus,textarea:focus,select:focus{border-color:#3b82f6;box-shadow:0 0 0 3px #2563eb22}
     button{
       height:48px;border:0;border-radius:12px;background:#2563eb;
       color:white;font-weight:800;width:100%;cursor:pointer
@@ -60,7 +60,7 @@
     .section h2{font-size:17px;margin:0 0 5px}.section>p{margin-top:0;font-size:13px}
     .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}.grid2 label{margin:7px 0}
     .banner-card{padding:14px;border:1px solid #263650;border-radius:14px;margin:12px 0;background:#0d1728}
-    .banner-card h3{margin:0 0 8px;font-size:13px;color:#bfdbfe}
+    .banner-card h3{margin:0 0 8px;font-size:13px;color:#bfdbfe}.banner-preview{min-height:150px;border-radius:15px;border:1px solid #263650;overflow:hidden;margin:10px 0 14px;background:linear-gradient(135deg,#07101f,#15243d);background-size:cover;background-position:center;position:relative}.banner-preview:after{content:"Vista previa";position:absolute;right:9px;top:9px;padding:5px 8px;border-radius:999px;background:#07101fcc;color:#dbeafe;font-size:10px;font-weight:800}.banner-preview-copy{position:absolute;left:16px;right:16px;bottom:14px;text-shadow:0 2px 12px #000}.banner-preview-copy b{display:block;font-size:18px}.banner-preview-copy span{display:block;font-size:12px;color:#d6e0ee;margin-top:3px}.banner-help{font-size:11px;color:#7f91aa;margin-top:-4px}.banner-tools{display:flex;gap:8px}.banner-tools button{height:36px;font-size:12px}.banner-tools .clear-banner{background:#27364d}
     .checks{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0}.checks label{display:flex;align-items:center;gap:7px;margin:0}.checks input{height:auto}
     .review-list{display:grid;gap:10px;margin-top:12px}.review-item{padding:12px;border:1px solid #263650;border-radius:12px;background:#0b1220}.review-item header{display:flex;justify-content:space-between;gap:10px}.review-item p{font-size:13px;margin:8px 0}.review-actions{display:flex;gap:8px}.review-actions button{height:36px;font-size:12px}.review-actions .reject{background:#7f1d1d}
     .home-checks{padding:10px 0}.merchandising-list{max-height:620px;overflow:auto;padding-right:4px}.merchandising-item>button{height:38px;margin-top:8px}.merchandising-item .grid2 input{height:40px}.merchandising-item .checks{margin:8px 0}
@@ -74,7 +74,7 @@
       <h1>CUYRA Catalog Cloud</h1>
       <p>Alta privada de catálogo. No compartas esta página ni la clave administrativa.</p>
     </div>
-    <div class="ver">V4.4.0</div>
+    <div class="ver">V4.4.1</div>
   </div>
 
   <div id="runtime" class="runtime">
@@ -115,13 +115,13 @@
   <pre id="out">Listo para operar.</pre>
 
   <div class="section">
-    <h2>Vitrina comercial V4.4</h2>
+    <h2>Vitrina comercial V4.4.1</h2>
     <p>Configura hasta 3 banners, delivery/retiro y la experiencia de confirmación. Si dejas los banners vacíos, CUYRA usa slides automáticos.</p>
     <button id="loadStorefront" class="ghost" type="button">Cargar configuración comercial</button>
     <div id="bannerFields">
-      <div class="banner-card"><h3>Banner 1</h3><label>Título<input id="b1Title"></label><label>Subtítulo<textarea id="b1Subtitle"></textarea></label><label>URL de imagen<input id="b1Image" placeholder="https://..."></label><div class="grid2"><label>CTA<input id="b1Cta" placeholder="Comprar ahora"></label><label>Destino<input id="b1Target" placeholder="category:Balones o /ruta"></label></div></div>
-      <div class="banner-card"><h3>Banner 2</h3><label>Título<input id="b2Title"></label><label>Subtítulo<textarea id="b2Subtitle"></textarea></label><label>URL de imagen<input id="b2Image" placeholder="https://..."></label><div class="grid2"><label>CTA<input id="b2Cta"></label><label>Destino<input id="b2Target"></label></div></div>
-      <div class="banner-card"><h3>Banner 3</h3><label>Título<input id="b3Title"></label><label>Subtítulo<textarea id="b3Subtitle"></textarea></label><label>URL de imagen<input id="b3Image" placeholder="https://..."></label><div class="grid2"><label>CTA<input id="b3Cta"></label><label>Destino<input id="b3Target"></label></div></div>
+      <div class="banner-card"><h3>Banner 1</h3><div id="b1Preview" class="banner-preview"><div class="banner-preview-copy"><b id="b1PreviewTitle">Banner 1</b><span id="b1PreviewSubtitle">La vista previa se actualiza mientras escribes.</span></div></div><label>Título<input id="b1Title" placeholder="Ej. Todo para tu próximo juego"></label><label>Subtítulo<textarea id="b1Subtitle" placeholder="Texto breve de apoyo"></textarea></label><div class="grid2"><label>Imagen escritorio<input id="b1Image" placeholder="https://..."></label><label>Imagen móvil (opcional)<input id="b1MobileImage" placeholder="https://..."></label></div><div class="banner-help">Usa una URL pública de imagen. Si dejas la imagen móvil vacía, se usa la de escritorio.</div><div class="grid2"><label>Texto del botón<input id="b1Cta" placeholder="Comprar ahora"></label><label>Tipo de destino<select id="b1TargetType"><option value="">Productos</option><option value="category">Categoría</option><option value="brand">Marca</option><option value="product">Producto (ID)</option><option value="path">Ruta interna</option></select></label></div><label>Valor del destino<input id="b1TargetValue" placeholder="Balones / Mikasa / 123 / /c/mi-tienda"></label><div class="banner-tools"><button type="button" class="clear-banner" data-clear-banner="1">Limpiar banner</button></div></div>
+      <div class="banner-card"><h3>Banner 2</h3><div id="b2Preview" class="banner-preview"><div class="banner-preview-copy"><b id="b2PreviewTitle">Banner 2</b><span id="b2PreviewSubtitle">La vista previa se actualiza mientras escribes.</span></div></div><label>Título<input id="b2Title" placeholder="Ej. Todo para tu próximo juego"></label><label>Subtítulo<textarea id="b2Subtitle" placeholder="Texto breve de apoyo"></textarea></label><div class="grid2"><label>Imagen escritorio<input id="b2Image" placeholder="https://..."></label><label>Imagen móvil (opcional)<input id="b2MobileImage" placeholder="https://..."></label></div><div class="banner-help">Usa una URL pública de imagen. Si dejas la imagen móvil vacía, se usa la de escritorio.</div><div class="grid2"><label>Texto del botón<input id="b2Cta" placeholder="Comprar ahora"></label><label>Tipo de destino<select id="b2TargetType"><option value="">Productos</option><option value="category">Categoría</option><option value="brand">Marca</option><option value="product">Producto (ID)</option><option value="path">Ruta interna</option></select></label></div><label>Valor del destino<input id="b2TargetValue" placeholder="Balones / Mikasa / 123 / /c/mi-tienda"></label><div class="banner-tools"><button type="button" class="clear-banner" data-clear-banner="2">Limpiar banner</button></div></div>
+      <div class="banner-card"><h3>Banner 3</h3><div id="b3Preview" class="banner-preview"><div class="banner-preview-copy"><b id="b3PreviewTitle">Banner 3</b><span id="b3PreviewSubtitle">La vista previa se actualiza mientras escribes.</span></div></div><label>Título<input id="b3Title" placeholder="Ej. Todo para tu próximo juego"></label><label>Subtítulo<textarea id="b3Subtitle" placeholder="Texto breve de apoyo"></textarea></label><div class="grid2"><label>Imagen escritorio<input id="b3Image" placeholder="https://..."></label><label>Imagen móvil (opcional)<input id="b3MobileImage" placeholder="https://..."></label></div><div class="banner-help">Usa una URL pública de imagen. Si dejas la imagen móvil vacía, se usa la de escritorio.</div><div class="grid2"><label>Texto del botón<input id="b3Cta" placeholder="Comprar ahora"></label><label>Tipo de destino<select id="b3TargetType"><option value="">Productos</option><option value="category">Categoría</option><option value="brand">Marca</option><option value="product">Producto (ID)</option><option value="path">Ruta interna</option></select></label></div><label>Valor del destino<input id="b3TargetValue" placeholder="Balones / Mikasa / 123 / /c/mi-tienda"></label><div class="banner-tools"><button type="button" class="clear-banner" data-clear-banner="3">Limpiar banner</button></div></div>
     </div>
     <div class="checks"><label><input id="deliveryEnabled" type="checkbox" checked> Delivery</label><label><input id="pickupEnabled" type="checkbox" checked> Retiro en tienda</label></div>
     <div class="grid2"><label>Texto de retiro<input id="pickupLabel" placeholder="Retiro en tienda"></label><label>Horario<input id="businessHours" placeholder="Lun-Sáb 9:00–18:00"></label></div>
@@ -145,6 +145,6 @@
   </div>
 </div>
 
-<script src="/nexus-admin-tenant-7f4b2.js?v=440" defer></script>
+<script src="/nexus-admin-tenant-7f4b2.js?v=441" defer></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const CACHE='cuyra-catalog-v4.4.0'
+const CACHE='cuyra-catalog-v4.4.1'
 const PRECACHE=['/index.html','/manifest.webmanifest','/cuyra-mark.png','/cuyra-mark-on-dark.png','/cuyra-icon-192.png','/cuyra-icon-512.png']
 
 self.addEventListener('install',event=>{
