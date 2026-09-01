@@ -92,6 +92,16 @@ function setMeta(name:string,content:string,property=false){
   el.content=content
 }
 function setTenantManifest(slug=''){const link=document.querySelector('link[rel="manifest"]') as HTMLLinkElement|null;if(link)link.href=slug?`/api/catalog?manifest=1&slug=${encodeURIComponent(slug)}`:'/manifest.webmanifest'}
+function useMotionReveal(trigger:unknown){
+  useEffect(()=>{
+    if(typeof window==='undefined'||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return
+    const nodes=Array.from(document.querySelectorAll<HTMLElement>('.home-commerce-section,.products-section,.trust-section,.recent-section,.review-section,.related,.product-detail,.product-card'))
+    nodes.forEach((el,i)=>{el.classList.add('motion-reveal');el.style.setProperty('--motion-delay',`${Math.min((i%8)*42,252)}ms`)})
+    if(!('IntersectionObserver' in window)){nodes.forEach(el=>el.classList.add('motion-visible'));return}
+    const io=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){(entry.target as HTMLElement).classList.add('motion-visible');io.unobserve(entry.target)}},{threshold:.08,rootMargin:'0px 0px -6% 0px'})
+    nodes.forEach(el=>io.observe(el));return()=>io.disconnect()
+  },[trigger])
+}
 function setPageSeo(title:string,description:string,image?:string|null){
   document.title=title;setMeta('description',description);setMeta('og:title',title,true);setMeta('og:description',description,true);setMeta('og:url',location.href,true)
   if(image)setMeta('og:image',image,true)
@@ -235,10 +245,15 @@ function StoreHeroCarousel({tenant,total}:{tenant:Tenant;total:number}){
     {title:'Compra fácil desde tu teléfono',subtitle:'Arma tu pedido, revisa el total referencial y termina la solicitud por WhatsApp.',ctaLabel:'Explorar catálogo'},
     {title:'Información conectada con CUYRA',subtitle:`${total} productos publicados con precios, variantes y disponibilidad según la configuración de la empresa.`,ctaLabel:'Ver productos'}
   ]
-  const items=(Array.isArray(tenant.banners_json)&&tenant.banners_json.length?tenant.banners_json:fallback).slice(0,3),[index,setIndex]=useState(0)
-  useEffect(()=>{if(items.length<2)return;const t=setInterval(()=>setIndex(i=>(i+1)%items.length),5200);return()=>clearInterval(t)},[items.length])
+  const items=(Array.isArray(tenant.banners_json)&&tenant.banners_json.length?tenant.banners_json:fallback).slice(0,3),[index,setIndex]=useState(0),[paused,setPaused]=useState(false),[touchX,setTouchX]=useState<number|null>(null)
+  const move=(delta:number)=>setIndex(i=>(i+delta+items.length)%items.length)
+  useEffect(()=>{if(items.length<2||paused)return;const t=setInterval(()=>move(1),5600);return()=>clearInterval(t)},[items.length,paused])
   const b=items[index]||items[0],img=b.mobileImageUrl||b.imageUrl
-  return <section className="commerce-hero-carousel" id="catalog-home"><div key={`${index}-${b.title}`} className={`commerce-hero-slide ${img?'has-image':''}`} style={img?{backgroundImage:`linear-gradient(90deg,rgba(5,12,28,.93),rgba(5,12,28,.25)),url(${img})`}:undefined}><div className="commerce-hero-copy"><span className="eyebrow"><Sparkles size={13}/> {tenant.public_name}</span><h1>{b.title}</h1><p>{b.subtitle}</p><div className="hero-actions"><a className="hero-primary" href={bannerHref(tenant,b)}><ShoppingBag size={17}/> {b.ctaLabel||'Ver más'}</a>{phoneDigits(tenant.phone)&&<a className="hero-secondary" href={openWhatsApp(tenant.phone,`Hola ${tenant.public_name}, vengo del catálogo y quisiera asesoría para comprar.`)} target="_blank" rel="noreferrer"><MessageCircle size={17}/> Asesoría</a>}</div></div>{!img&&<div className="commerce-hero-art"><div className="hero-shop-bag"><ShoppingBag/><b>{total}</b><small>productos</small></div><div className="hero-system-pill"><RefreshCw/> Sincronizado con CUYRA</div></div>}</div>{items.length>1&&<div className="hero-dots">{items.map((x,i)=><button key={`${x.title}-${i}`} className={i===index?'active':''} onClick={()=>setIndex(i)} aria-label={`Banner ${i+1}`}/>)}</div>}</section>
+  const touchEnd=(x:number)=>{if(touchX!==null&&Math.abs(x-touchX)>42)move(x<touchX?1:-1);setTouchX(null);setPaused(false)}
+  return <section className={`commerce-hero-carousel ${paused?'is-paused':''}`} id="catalog-home" onMouseEnter={()=>setPaused(true)} onMouseLeave={()=>setPaused(false)} onTouchStart={e=>{setTouchX(e.changedTouches[0].clientX);setPaused(true)}} onTouchEnd={e=>touchEnd(e.changedTouches[0].clientX)}>
+    <div key={`${index}-${b.title}`} className={`commerce-hero-slide ${img?'has-image':''}`} style={img?{backgroundImage:`linear-gradient(90deg,rgba(5,12,28,.93),rgba(5,12,28,.25)),url(${img})`}:undefined}><div className="commerce-hero-copy"><span className="eyebrow"><Sparkles size={13}/> {tenant.public_name}</span><h1>{b.title}</h1><p>{b.subtitle}</p><div className="hero-actions"><a className="hero-primary" href={bannerHref(tenant,b)}><ShoppingBag size={17}/> {b.ctaLabel||'Ver más'}</a>{phoneDigits(tenant.phone)&&<a className="hero-secondary" href={openWhatsApp(tenant.phone,`Hola ${tenant.public_name}, vengo del catálogo y quisiera asesoría para comprar.`)} target="_blank" rel="noreferrer"><MessageCircle size={17}/> Asesoría</a>}</div></div>{!img&&<div className="commerce-hero-art"><div className="hero-shop-bag"><ShoppingBag/><b>{total}</b><small>productos</small></div><div className="hero-system-pill"><RefreshCw/> Sincronizado con CUYRA</div></div>}</div>
+    {items.length>1&&<><button type="button" className="hero-nav prev" onClick={()=>move(-1)} aria-label="Banner anterior"><ChevronLeft/></button><button type="button" className="hero-nav next" onClick={()=>move(1)} aria-label="Banner siguiente"><ChevronRight/></button><div className="hero-dots">{items.map((x,i)=><button key={`${x.title}-${i}`} className={i===index?'active':''} onClick={()=>setIndex(i)} aria-label={`Banner ${i+1}`}/>)}</div><div className="hero-progress"><i key={`progress-${index}`} /></div></>}
+  </section>
 }
 function RatingLine({product:p,large=false}:{product:Product;large?:boolean}){if(!p.rating_count)return <span className={`rating-line empty ${large?'large':''}`}><Star/> Sin valoraciones todavía</span>;return <span className={`rating-line ${large?'large':''}`}><Star fill="currentColor"/> <b>{Number(p.rating_value||0).toFixed(1)}</b><small>({p.rating_count})</small></span>}
 function ReviewSection({slug,product,reviews}:{slug:string;product:Product;reviews:Review[]}){
@@ -316,6 +331,7 @@ function Storefront({slug}:{slug:string}){
       .catch(e=>setError(String(e.message||e))).finally(()=>setLoading(false))
   },[slug,search,category,subcategory,brand,availability,minPrice,maxPrice,featuredOnly,promoOnly,sort,page])
   useEffect(()=>{if(search.length>=2)track(slug,'search',{q:search.slice(0,100)})},[slug,search])
+  useMotionReveal(`${loading}-${data?.total??0}-${page}-${featuredHome.length}-${offerHome.length}`)
 
   const tenant=data?.tenant||null,accent=tenant?.accent_color||'#1368ff'
   const activeFilters=[category,subcategory,brand,tenant?.show_stock_mode==='hidden'?'':availability,minPrice,maxPrice,featuredOnly?'featured':'',promoOnly?'promo':''].filter(Boolean).length
@@ -405,6 +421,7 @@ function ProductDetail({slug,productId}:{slug:string;productId:number}){
     fetch(`/api/product?slug=${encodeURIComponent(slug)}&productId=${productId}`).then(async r=>{const x=await r.json();if(!r.ok)throw new Error(x.error||'No se pudo abrir el producto');return x})
       .then((x:ProductResult)=>{setData(x);setTenantManifest(slug);const variants=x.product.variants||[];const first=variants.find(v=>v.availability!=='out')||variants[0];setSelectedVariantId(first?.source_product_id||null);setPageSeo(`${x.product.name} · ${x.tenant.public_name}`,x.product.description||`Consulta ${x.product.name} en el catálogo de ${x.tenant.public_name}.`,first?.image_url||x.product.image_url);track(slug,'product_view',{productId:x.product.source_product_id,source:'detail'})}).catch(e=>setError(String(e.message||e))).finally(()=>setLoading(false))
   },[slug,productId])
+  useMotionReveal(`${loading}-${data?.product.source_product_id??0}-${selectedVariantId??0}`)
   const tenant=data?.tenant||null,accent=tenant?.accent_color||'#1368ff'
   const favoriteIds=useMemo(()=>new Set(favorites.map(x=>x.id)),[favorites]),orderCount=order.reduce((s,x)=>s+x.qty,0)
   useEffect(()=>{

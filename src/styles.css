@@ -459,3 +459,40 @@ linear-gradient(120deg,#06101d 0%,#0a1a31 48%,color-mix(in srgb,var(--tenant-acc
 .section-soft-note{font-size:11px;color:#7b8797;font-weight:700}
 .detail-prices{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.detail-prices del{width:100%;font-size:13px;color:#9aa4b2;text-decoration-thickness:1.5px}.promo-badge{background:#ef4444!important;color:#fff!important}
 .state.error button{margin-top:10px;border:1px solid var(--line);background:#fff;color:var(--ink);padding:10px 14px;border-radius:11px;font-weight:800;cursor:pointer}
+
+/* CUYRA Catalog V4.4.1 · MOTIONUX01 */
+@keyframes heroSlideIn{0%{opacity:.15;transform:scale(1.018) translateX(10px)}100%{opacity:1;transform:scale(1) translateX(0)}}
+@keyframes heroCopyIn{0%{opacity:0;transform:translateY(18px)}100%{opacity:1;transform:translateY(0)}}
+@keyframes heroProgress{0%{transform:scaleX(0)}100%{transform:scaleX(1)}}
+@keyframes softPop{0%{transform:scale(.82)}60%{transform:scale(1.12)}100%{transform:scale(1)}}
+@keyframes checkPop{0%{opacity:0;transform:scale(.55) rotate(-8deg)}70%{opacity:1;transform:scale(1.08) rotate(2deg)}100%{transform:scale(1) rotate(0)}}
+@keyframes starPop{0%{transform:scale(.72) rotate(-8deg)}70%{transform:scale(1.18) rotate(4deg)}100%{transform:scale(1)}}
+@keyframes shimmer{100%{transform:translateX(100%)}}
+
+.commerce-hero-slide{animation:heroSlideIn .62s cubic-bezier(.2,.8,.2,1) both}
+.commerce-hero-copy>*{animation:heroCopyIn .52s cubic-bezier(.2,.8,.2,1) both}
+.commerce-hero-copy>*:nth-child(2){animation-delay:.05s}.commerce-hero-copy>*:nth-child(3){animation-delay:.1s}.commerce-hero-copy>*:nth-child(4){animation-delay:.15s}
+.hero-nav{position:absolute;top:50%;z-index:8;width:44px;height:44px;border:1px solid rgba(255,255,255,.25);border-radius:50%;background:rgba(7,17,31,.35);color:#fff;display:grid;place-items:center;backdrop-filter:blur(10px);transform:translateY(-50%);cursor:pointer;transition:transform .18s ease,background .18s ease,opacity .18s ease}
+.hero-nav.prev{left:36px}.hero-nav.next{right:36px}.hero-nav:hover{background:rgba(7,17,31,.62);transform:translateY(-50%) scale(1.06)}.hero-nav:active{transform:translateY(-50%) scale(.94)}.hero-nav svg{width:20px}
+.hero-progress{position:absolute;left:54px;right:54px;bottom:0;height:3px;background:rgba(255,255,255,.16);overflow:hidden;z-index:7}.hero-progress i{display:block;height:100%;background:#fff;transform-origin:left;animation:heroProgress 5.6s linear both}.commerce-hero-carousel.is-paused .hero-progress i{animation-play-state:paused}
+.hero-dots button{transition:width .24s ease,transform .2s ease,background .2s ease}.hero-dots button:active{transform:scale(.8)}
+
+.motion-reveal{opacity:0;transform:translateY(18px);transition:opacity .58s cubic-bezier(.2,.8,.2,1) var(--motion-delay,0ms),transform .58s cubic-bezier(.2,.8,.2,1) var(--motion-delay,0ms)}
+.motion-reveal.motion-visible{opacity:1;transform:translateY(0)}
+.product-card.motion-reveal.motion-visible{transform:translateY(0)}
+.product-card{will-change:transform}.product-card img{transition:transform .38s cubic-bezier(.2,.8,.2,1)}
+@media(hover:hover) and (pointer:fine){.product-card:hover .product-image img{transform:scale(1.035)}.product-card:hover{transform:translateY(-5px);box-shadow:0 18px 45px rgba(7,17,31,.12)}}
+.favorite-btn,.add-list-btn,.quick-whatsapp,.recent-actions button,.mobile-bottom-nav button,.qty-control button,.detail-qty button,.variant-options button{transition:transform .16s ease,box-shadow .2s ease,background .2s ease,color .2s ease,border-color .2s ease}
+.favorite-btn:active,.add-list-btn:active,.quick-whatsapp:active,.recent-actions button:active,.mobile-bottom-nav button:active,.qty-control button:active,.detail-qty button:active,.variant-options button:active{transform:scale(.9)}
+.favorite-btn.active svg,.recent-actions button.active svg{animation:softPop .32s cubic-bezier(.2,.8,.2,1)}
+.rating-picker button.active svg{animation:starPop .24s cubic-bezier(.2,.8,.2,1)}
+.badge-action b,.mobile-bottom-nav .nav-order b,.floating-order b{animation:softPop .34s cubic-bezier(.2,.8,.2,1)}
+.checkout-screen{animation:fadeIn .24s ease both}.checkout-shell{animation:heroCopyIn .38s cubic-bezier(.2,.8,.2,1) both}.checkout-check{animation:checkPop .52s cubic-bezier(.2,.8,.2,1) .08s both}.checkout-whatsapp{transition:transform .18s ease,box-shadow .2s ease}.checkout-whatsapp:active{transform:scale(.975)}
+.drawer-backdrop{animation:fadeIn .2s ease both}.commerce-drawer,.filter-drawer{animation:drawerIn .34s cubic-bezier(.2,.8,.2,1) both}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}@keyframes drawerIn{from{opacity:.3;transform:translateX(28px)}to{opacity:1;transform:translateX(0)}}
+.skeleton-card{position:relative;overflow:hidden}.skeleton-card:after{content:"";position:absolute;inset:0;transform:translateX(-100%);background:linear-gradient(90deg,transparent,rgba(255,255,255,.68),transparent);animation:shimmer 1.35s infinite}
+.detail-main-image img,.product-gallery-thumbs img{transition:opacity .22s ease,transform .3s ease}.detail-main-image:active img{transform:scale(.985)}
+.variant-options button.active{transform:translateY(-2px);box-shadow:0 10px 26px color-mix(in srgb,var(--accent) 13%,transparent)}
+
+@media(max-width:760px){.hero-nav{display:none}.hero-progress{left:22px;right:22px}.commerce-hero-slide{animation-duration:.48s}.motion-reveal{transform:translateY(12px)}.commerce-drawer,.filter-drawer{animation-name:drawerUp}@keyframes drawerUp{from{opacity:.35;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}.motion-reveal{opacity:1!important;transform:none!important}.hero-progress{display:none}}
