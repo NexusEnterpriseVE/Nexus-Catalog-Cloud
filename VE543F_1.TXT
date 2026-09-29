@@ -1,0 +1,6 @@
+CUYRA Catalog Cloud V4.3.0 · MOBILECOMMERCE01
+
+Base: V4.2.0 GALLERY01
+Alcance: Home móvil + Catálogo móvil + Filtros bottom-sheet.
+Datos: sin migración SQL nueva.
+Compatibilidad: conserva tenants, productos, variantes, galería, analytics, Sofía y sincronización CUYRA.

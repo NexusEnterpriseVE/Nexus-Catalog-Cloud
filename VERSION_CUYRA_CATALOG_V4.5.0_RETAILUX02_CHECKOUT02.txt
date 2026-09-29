@@ -1,0 +1,6 @@
+CUYRA Catalog Cloud V4.5.0
+Release: RETAILUX02 + CHECKOUT02
+Baseline: V4.4.1 MOTIONUX01 + ADMINBANNERUX01
+Compatibility: additive / backward-compatible
+Source of truth: CUYRA
+Checkout semantics: request-only; no automatic sale, stock reservation or cash movement.

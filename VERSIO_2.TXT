@@ -1,0 +1,2 @@
+CUYRA Catalog Cloud V4.1.0 · HF02 CARDFIX01
+Fix visual no destructivo para tarjetas de producto.

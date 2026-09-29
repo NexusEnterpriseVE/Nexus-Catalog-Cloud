@@ -1,0 +1,9 @@
+CUYRA Catalog Cloud V4.1.0 HF05
+MOBILECARD01 + QTYUX01
+- Mobile cards keep a compact 2-column marketplace layout.
+- Long product names support up to 3 clean lines without collision.
+- Variant chips are removed from narrow cards; variant count remains visible.
+- Product prices/actions remain aligned at the bottom of cards.
+- Mobile quantity selector is now a labeled, full-width, touch-friendly stepper.
+- Fixes literal escaped newline tokens left in the HF03 CSS append so mobile overrides are parsed consistently.
+- No API, Supabase, tenant, synchronization or Serverless Function changes.

@@ -1,0 +1,34 @@
+QA REPORT · CUYRA Catalog V4.4.0
+MOBILECOMMERCE02 + PRODUCTUX01 + RATING01 + WACONFIRM01
+Base: V4.3.0 MOBILECOMMERCE01
+Fecha: 2026-09-01
+
+RESULTADO ESTATICO: PASS
+
+QA CUYRA CATALOG V4.4.0: PASS
+ + package 4.4.0
+ + migración aditiva
+ + 12 Serverless preservadas
+ + checkout no mueve inventario
+ + compatibilidad con Principal anterior preservada
+ + sin módulo Combos
+ + sin ratings falsos hardcodeados
+ + admin JS syntax OK
+TS_SYNTAX PASS files=18 errors=0
+ADMIN_JS_SYNTAX: PASS
+
+Validaciones adicionales:
+- Sin módulo Combos en APIs, storefront, admin ni migración V4.4.
+- Migración V4.4 aditiva: sin DROP/DELETE/TRUNCATE/renames destructivos.
+- Serverless Functions preservadas: 12 archivos api/*.ts.
+- Checkout no modifica catalog_products, stock, Caja ni ventas ERP.
+- Checkout revalida producto/variante, precio actual publicado y stock antes de crear solicitud WhatsApp.
+- Reviews públicas: solo approved=true. Reviews nuevas: approved=false.
+- No se detectaron ratings comerciales hardcodeados.
+- Sincronización de Principales anteriores no pisa merchandising Cloud si no envían los nuevos campos.
+- Continuidad estática de V4.3/V4.2/V4 central: galería, variantes, favoritos, recientes, filtros, PWA, Sofía y sync presentes.
+
+LIMITACION DEL ENTORNO:
+- npm install agotó el tiempo de espera de acceso al registro npm, por lo que aquí no se ejecutó vite build completo.
+- El parse/transpile TS/TSX de 18 archivos pasó sin errores de sintaxis.
+- Primer despliegue obligatorio: Vercel Preview antes de Production.

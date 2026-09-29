@@ -1,0 +1,37 @@
+CUYRA Catalog Cloud V4.5.0 · RETAILUX02 + CHECKOUT02
+QA REPORT
+Date: 2026-09-29
+
+RESULT: PASS WITH BUILD-ENV LIMITATION
+
+Custom regression suite:
+- 30/30 invariants PASS.
+- CUYRA sync-product unchanged.
+- CUYRA sync-settings unchanged.
+- Sofía endpoints unchanged.
+- Security/Supabase/Vercel/env contracts unchanged.
+- Legacy localStorage keys preserved.
+- Checkout server-side product/variant/price/stock revalidation present.
+- Checkout does not update inventory, create sales, reserve stock or touch Caja.
+- Additive migration contains no DROP / DELETE / TRUNCATE / RENAME.
+- Admin supports announcements, pickup address, Zoom/Tealca, payment methods and brand-logo mapping.
+
+Syntax checks:
+- TypeScript transpile syntax PASS: src/main.tsx, api/catalog.ts, api/admin-analytics.ts,
+  api/product.ts, api/sync-product.ts, api/sync-settings.ts, server/catalog-v4.ts, server/security.ts.
+- node --check PASS: public/nexus-admin-tenant-7f4b2.js.
+- CSS brace balance PASS.
+
+Build limitation:
+- Full `npm install` could not complete inside the execution environment before timeout,
+  so a clean Vite production build was not executed here. The source package keeps the original
+  dependency contract and is intended for the normal Vercel/npm build pipeline.
+- Historical qa_static.py is version/protocol hard-coded and remains obsolete; use
+  scripts/qa/qa_v450_retailux_checkout.py for this release.
+
+Deployment order:
+1) Apply supabase/migrations/v4_5_retailux_checkout.sql.
+2) Deploy source to Vercel with existing environment variables unchanged.
+3) Verify /api/health reports 4.5.0.
+4) Run python scripts/qa/qa_v450_retailux_checkout.py.
+5) Smoke-test one real CUYRA sync and one checkout request before production promotion.

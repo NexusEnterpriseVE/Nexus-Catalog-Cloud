@@ -1,6 +1,6 @@
-# CUYRA Catalog Cloud V4.4.1 · MOTIONUX01 + ADMINBANNERUX01
+# CUYRA Catalog Cloud V4.5.0 · RETAILUX02 + CHECKOUT02
 
-> Update acumulativo sobre V4.4.0. No requiere nueva migración Supabase. Conserva MOBILECOMMERCE02 + PRODUCTUX01 + RATING01 + WACONFIRM01 y añade movimiento/UX y administración visual de banners.
+> Update acumulativo no destructivo sobre V4.4.1. Conserva MOTIONUX01 + ADMINBANNERUX01 y añade RETAILUX02 + CHECKOUT02: rediseño retail responsive, navegación/búsqueda premium, cards/ficha V3 y checkout de solicitud estructurado hacia WhatsApp. Requiere la migración aditiva `supabase/migrations/v4_5_retailux_checkout.sql` para persistir los datos enriquecidos del checkout.
 
 Catálogo cloud multiempresa conectado a **CUYRA**. CUYRA es la fuente de verdad; Catalog Cloud es la proyección online para la tienda pública y consumidores autorizados como Sofía.
 
@@ -54,6 +54,18 @@ Actualización enfocada en la **experiencia móvil del storefront**, sin crear u
 - Desktop, ficha de producto, galería, variantes, favoritos, recientes, pedido y WhatsApp se preservan.
 
 **No requiere migración SQL nueva.**
+
+
+## V4.5 · RETAILUX02 + CHECKOUT02
+
+- UI retail premium para desktop y móvil, sin reemplazar el stack ni los contratos de integración.
+- Header con logo, Marcas, Categorías, Ofertas, búsqueda predictiva, favoritos y carrito.
+- Announcement bar rotativa administrable, banners desktop/mobile, carrusel de marcas y categorías compactas.
+- Product Card V3 y Product Detail V3 con SKU, ratings, variantes, precio y disponibilidad.
+- `Comprar ahora`, carrito y checkout con Retiro / Envío, Zoom / Tealca, datos del cliente y métodos de pago configurables.
+- El backend revalida publicación, SKU/variante, precio y stock antes de generar el resumen de WhatsApp.
+- El checkout sigue siendo una **solicitud**: no crea ventas, no reserva/descuenta stock y no toca Caja.
+- Persistencia enriquecida aditiva en `catalog_whatsapp_requests`; fallback compatible con esquema V4.4.x.
 
 ## V4.4 · MOBILECOMMERCE02 + PRODUCTUX01 + RATING01 + WACONFIRM01
 
@@ -118,7 +130,7 @@ Usa un token de lectura propio por tenant. Nunca entregar a Sofía `SUPABASE_SER
 2. Probar este source en una rama/Preview de Vercel.
 3. Ejecutar **solo si quieres analytics** `supabase/migrations/v4_1_catalog_analytics.sql` en el Supabase oficial.
 4. Ejecutar `supabase/migrations/v4_4_mobilecommerce02.sql` en el Supabase oficial.
-5. Verificar `/api/health` → `CUYRA Catalog Cloud`, `4.4.1`.
+5. Verificar `/api/health` → `CUYRA Catalog Cloud`, `4.5.0`.
 6. Probar primero `/c/daca-sport` con productos reales, variantes, filtros, WhatsApp y móvil.
 7. Confirmar que logo/colores/datos de Daca Sport siguen siendo protagonistas.
 8. Solo después hacer merge a `main` / Production.
