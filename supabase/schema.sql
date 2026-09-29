@@ -195,3 +195,11 @@ alter table public.catalog_product_reviews enable row level security;
 alter table public.catalog_whatsapp_requests enable row level security;
 revoke all on table public.catalog_product_reviews from anon, authenticated;
 revoke all on table public.catalog_whatsapp_requests from anon, authenticated;
+
+-- CUYRA Catalog V4.5.0 · RETAILUX02 + CHECKOUT02
+-- Migración ADITIVA y compatible hacia atrás. Conserva la tabla y registros existentes.
+alter table public.catalog_whatsapp_requests add column if not exists customer_json jsonb not null default '{}'::jsonb;
+alter table public.catalog_whatsapp_requests add column if not exists fulfillment_json jsonb not null default '{}'::jsonb;
+alter table public.catalog_whatsapp_requests add column if not exists payment_method text not null default '';
+alter table public.catalog_whatsapp_requests add column if not exists notes text not null default '';
+create index if not exists idx_catalog_whatsapp_requests_payment on public.catalog_whatsapp_requests(tenant_id,payment_method,created_at desc);
