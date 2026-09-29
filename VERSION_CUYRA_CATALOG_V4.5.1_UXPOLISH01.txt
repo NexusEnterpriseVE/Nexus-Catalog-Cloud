@@ -1,0 +1,17 @@
+CUYRA Catalog Cloud V4.5.1 · UXPOLISH01
+
+Hotfix visual sobre V4.5.0 RETAILUX02 + CHECKOUT02.
+
+Correcciones:
+- Barra de compra móvil reequilibrada: precio + carrito + Comprar ahora.
+- El botón secundario usa icono de carrito en lugar de un + ambiguo.
+- Selector de cantidad restaurado en la ficha móvil sin duplicar CTAs.
+- Stock y favorito ya no se solapan en cards ni en ficha de producto.
+- Stock vuelve a ser legible en cards móviles.
+- Se elimina el overlay de acciones que aparecía al pasar el puntero por la foto.
+- Hover de imagen reducido a un micro-zoom limpio en cards; ficha sin deformación.
+- Beneficios móviles pasan a tres columnas simétricas.
+- Mejor espaciado y jerarquía de la ficha en 360–430 px.
+
+NO requiere migración SQL.
+NO cambia endpoints, tokens, Supabase, sincronización CUYRA, Sofía ni contratos de checkout.
