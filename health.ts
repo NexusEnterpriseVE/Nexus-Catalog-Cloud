@@ -1,7 +1,7 @@
 import { json } from '../server/http.js'
 
 function handleGET() {
-  return json({ ok: true, service: 'CUYRA Catalog Cloud', version: '4.5.0', protocol: 'catalog-v4.5-retailux-checkout' })
+  return json({ ok: true, service: 'CUYRA Catalog Cloud', version: '4.5.1', protocol: 'catalog-v4.5-retailux-checkout' })
 }
 
 export default {
