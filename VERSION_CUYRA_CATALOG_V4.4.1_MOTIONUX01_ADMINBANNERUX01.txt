@@ -1,4 +1,6 @@
-CUYRA Catalog Cloud V4.4.1
-MOTIONUX01 + ADMINBANNERUX01
-Base: V4.4.0 MOBILECOMMERCE02 + PRODUCTUX01 + RATING01 + WACONFIRM01
-No requiere migración Supabase.
+CUYRA Catalog Cloud V4.1.0
+UI02 + COMMERCEUX01 + CATALOGANALYTICS01 + PWA01
+Base compatible: Catalog Cloud V4 CENTRAL01
+Branding público: CUYRA
+Repositorio puede conservar temporalmente el nombre Nexus-Catalog-Cloud.
+HF01_VERCEL12=manifest integrated into api/catalog.ts; serverless functions=12

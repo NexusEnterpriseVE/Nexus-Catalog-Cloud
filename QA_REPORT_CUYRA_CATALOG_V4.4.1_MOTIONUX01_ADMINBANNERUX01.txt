@@ -1,22 +1,26 @@
-QA REPORT · CUYRA Catalog V4.4.1
-MOTIONUX01 + ADMINBANNERUX01
+CUYRA CATALOG V4.2.0 GALLERY01 — QA REPORT
+UTC 2026-08-25 12:47:58
 
-RESULTADO: PASS (QA estático / sintaxis)
+--- qa_static.py
+CLOUD_QA_STATIC_OK
+V4_GROUP_VARIANTS_OK
+SOFIA_SEPARATE_READ_TOKEN_OK
+CUYRA_UI02_OK
+COMMERCEUX01_OK
+CATALOGANALYTICS01_OK
+PWA01_OK
+WHITE_LABEL_TENANT_OK
+PUBLIC_PRIVATE_VISIBILITY_SPLIT_OK
+RLS_DIRECT_ACCESS_GUARD_OK
 
-Validado:
-- package.json = 4.4.1
-- /api/health = 4.4.1 / catalog-v4.4.1-motionux
-- Service Worker cache = cuyra-catalog-v4.4.1
-- Carousel: autoplay + pausa + flechas + swipe + progress
-- Scroll reveal y microinteracciones
-- prefers-reduced-motion incluido
-- Admin banners: preview, imagen desktop/móvil, tipo/valor de destino, limpiar
-- Admin JS: node --check PASS
-- TypeScript/TSX: tsc no reportó diagnósticos de sintaxis; los únicos errores fueron módulos/tipos no instalados en este entorno y errores de JSX key derivados de no disponer de tipos React.
-- Serverless functions: 12
-- Supabase schema: SHA-256 idéntico a V4.4.0; no hay migración V4.4.1
-- api/ (excepto health.ts): idéntico a V4.4.0
+--- qa_v420_gallery01.py
+QA CUYRA CATALOG V4.2.0 GALLERY01: OK
+ - gallery_urls aditivo y backfill de image_url
+ - sincronización máx. 5 imágenes y portada
+ - storefront con miniaturas/swipe conceptual y lightbox/zoom
+ - API pública/Sofía conservan galería
 
-LIMITACIÓN DEL ENTORNO:
-- npm install agotó el timeout, por lo que no se ejecutó vite build completo aquí.
-- Vercel debe usarse como validación final de build/deploy.
+--- node syntax
+NODE_STATIC_SYNTAX_OK
+
+LIMITACION: npm install agotó el timeout de red en este entorno, por lo que el build Vite real debe validarse en Vercel/entorno con dependencias disponibles.

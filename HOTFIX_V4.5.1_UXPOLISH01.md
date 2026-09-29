@@ -1,15 +1,35 @@
-# CUYRA Catalog Cloud V4.5.1 · UXPOLISH01
+# Nexus Catalog Cloud V3.0.1 — Product Query Hotfix
 
-Hotfix visual y responsive de V4.5.0. No modifica la arquitectura ni los contratos operativos.
+## Corregido
 
-## Alcance
-- Product Detail mobile polish.
-- Sticky buy bar responsive.
-- Quantity selector mobile.
-- Stock/favorite collision fix.
-- Product card hover cleanup.
-- Product image hover cleanup.
-- Mobile benefits symmetry.
+### 1. Productos invisibles aunque estaban sincronizados
+`URLSearchParams.get('minPrice')` y `get('maxPrice')` devuelven `null`
+cuando esos filtros no se envían.
 
-## Despliegue
-No ejecutar SQL. Reemplazar archivos sobre V4.5.0 y desplegar normalmente en Vercel.
+La función anterior hacía:
+
+```ts
+Number(null) === 0
+```
+
+por lo que el catálogo aplicaba accidentalmente:
+
+- `price_usd >= 0`
+- `price_usd <= 0`
+
+Esto excluía todos los productos con precio mayor a cero.
+
+Ahora los parámetros ausentes retornan `null` y no generan filtros de precio.
+
+### 2. Categorías/marcas fantasma
+Cuando `hide_out_of_stock = true`, los facets ahora también excluyen productos
+agotados, igual que la lista principal.
+
+## No requiere
+- recompilar Nexus Enterprise Pro;
+- modificar Supabase;
+- cambiar tenant;
+- cambiar token;
+- volver a publicar productos.
+
+Solo desplegar este Cloud V3.0.1 en Vercel.

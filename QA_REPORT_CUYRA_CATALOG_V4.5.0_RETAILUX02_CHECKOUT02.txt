@@ -1,37 +1,44 @@
-CUYRA Catalog Cloud V4.5.0 · RETAILUX02 + CHECKOUT02
-QA REPORT
-Date: 2026-09-29
+CUYRA CATALOG CLOUD V4.3.0 · MOBILECOMMERCE01 · QA REPORT
+===========================================================
 
-RESULT: PASS WITH BUILD-ENV LIMITATION
+BASE
+- V4.2.0 GALLERY01 FULL SOURCE
+- Sin migración SQL nueva para V4.3.0
 
-Custom regression suite:
-- 30/30 invariants PASS.
-- CUYRA sync-product unchanged.
-- CUYRA sync-settings unchanged.
-- Sofía endpoints unchanged.
-- Security/Supabase/Vercel/env contracts unchanged.
-- Legacy localStorage keys preserved.
-- Checkout server-side product/variant/price/stock revalidation present.
-- Checkout does not update inventory, create sales, reserve stock or touch Caja.
-- Additive migration contains no DROP / DELETE / TRUNCATE / RENAME.
-- Admin supports announcements, pickup address, Zoom/Tealca, payment methods and brand-logo mapping.
+ALCANCE
+- Home móvil tipo web-app.
+- Header móvil: menú + tenant + favoritos + pedido.
+- Accesos rápidos y rail horizontal de categorías.
+- Navegación inferior fija.
+- Catálogo móvil 2 columnas + quick-add.
+- Filtros bottom sheet con acciones Limpiar / Ver N productos.
+- Filtros de categoría, subcategoría, marca, rango de precio, destacados y disponibles.
+- minPrice/maxPrice reutilizan soporte existente de /api/catalog.
+- featured=1 agregado como filtro aditivo sobre el campo featured existente.
 
-Syntax checks:
-- TypeScript transpile syntax PASS: src/main.tsx, api/catalog.ts, api/admin-analytics.ts,
-  api/product.ts, api/sync-product.ts, api/sync-settings.ts, server/catalog-v4.ts, server/security.ts.
-- node --check PASS: public/nexus-admin-tenant-7f4b2.js.
-- CSS brace balance PASS.
+QA EJECUTADO EN ESTE ENTORNO
+[OK] qa_v420_gallery01.py
+[OK] qa_v430_mobilecommerce01.py
+[OK] qa_static.py
+[OK] TypeScript/TSX syntax-only parse: src/main.tsx
+[OK] TypeScript syntax-only parse: api/catalog.ts
+[OK] CSS braces balance: 932 / 932
+[OK] No existe migración supabase v4_3*.sql
 
-Build limitation:
-- Full `npm install` could not complete inside the execution environment before timeout,
-  so a clean Vite production build was not executed here. The source package keeps the original
-  dependency contract and is intended for the normal Vercel/npm build pipeline.
-- Historical qa_static.py is version/protocol hard-coded and remains obsolete; use
-  scripts/qa/qa_v450_retailux_checkout.py for this release.
+CONTINUIDAD COMPROBADA
+- GALLERY01 preservado.
+- Producto padre + variantes preservado.
+- Favoritos / vistos recientemente / lista de pedido preservados.
+- WhatsApp estructurado preservado.
+- Analytics preservado.
+- Token privado de Sofía / separación public-private preservados.
+- PWA preservada y service-worker cache actualizado a v4.3.0.
+- White-label: tenant protagonista / Powered by CUYRA preservado.
 
-Deployment order:
-1) Apply supabase/migrations/v4_5_retailux_checkout.sql.
-2) Deploy source to Vercel with existing environment variables unchanged.
-3) Verify /api/health reports 4.5.0.
-4) Run python scripts/qa/qa_v450_retailux_checkout.py.
-5) Smoke-test one real CUYRA sync and one checkout request before production promotion.
+LIMITACIÓN DEL ENTORNO
+- npm install agotó el tiempo de espera y no dejó node_modules, por lo que no se ejecutó `npm run build` local.
+- El source fue validado sintácticamente con TypeScript 5.8.3 y los QA estáticos acumulativos.
+- Recomendación: desplegar primero en Preview de Vercel; Vercel resolverá dependencias y ejecutará el build real antes de publicar.
+
+CRITERIO DE PUBLICACIÓN
+No pasar a Production si el Preview falla en build, si /api/health no reporta 4.3.0 o si un tenant real pierde productos, variantes, imágenes, stock, filtros o pedido.

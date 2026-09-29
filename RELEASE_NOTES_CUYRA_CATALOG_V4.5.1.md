@@ -1,18 +1,39 @@
-# CUYRA Catalog Cloud V4.5.1 · UXPOLISH01
+# Release Notes · CUYRA Catalog V4.4.0
 
-Hotfix visual posterior a V4.5.0 RETAILUX02 + CHECKOUT02.
+**Build:** MOBILECOMMERCE02 + PRODUCTUX01 + RATING01 + WACONFIRM01  
+**Base:** V4.3.0 MOBILECOMMERCE01  
+**Tipo:** update acumulativo multi-tenant
 
-## Corregido
-- Barra fija de compra en teléfonos: mejor proporción y lectura.
-- Acción secundaria de carrito usa icono de carrito en lugar de `+`.
-- CTA móvil cambia a **Comprar ahora**.
-- Selector de cantidad vuelve a estar disponible en la ficha móvil.
-- Separación física entre disponibilidad y favorito en ficha y cards.
-- Disponibilidad visible en cards móviles sin ser tapada por favorito.
-- Se elimina el toolbar que aparecía sobre las fotos al hacer hover.
-- Hover de fotografía más discreto y sin deformaciones.
-- Beneficios de la ficha móvil quedan en tres columnas simétricas.
-- Espaciado, jerarquía y respiración mejorados para 360–430 px.
+## Nuevo
+- Home comercial estilo app con hero/banner carousel configurable.
+- Destacados, Recomendados, Ofertas y Novedades.
+- Filtro Ofertas y orden por calificación.
+- Precio anterior, descuento/badge y merchandising administrable.
+- Calificaciones reales, comentarios y moderación.
+- Pantalla de confirmación antes de WhatsApp.
+- Delivery / Retiro configurable.
+- Código de solicitud `CY-YYMMDD-XXXXXX`.
+- Registro de solicitudes WhatsApp.
+- Estado explícito Sin conexión.
 
-## Compatibilidad
-No hay cambios de esquema, API, tokens, endpoints, sincronización, Supabase, Sofía o contratos de checkout. No requiere migración SQL.
+## Seguridad / consistencia
+- Checkout revalida IDs, nombre, SKU, precio y stock contra `catalog_products` antes de generar la solicitud.
+- El navegador no decide el precio final del mensaje estructurado.
+- Una solicitud WhatsApp no mueve inventario ni crea venta en CUYRA.
+- Reviews nuevas se guardan pendientes y el storefront usa solo reviews aprobadas.
+- Anti-spam diario por fingerprint hash.
+- Sincronización de un Principal anterior no pisa `recommended`, `promo_badge` ni `compare_at_price_*` si esos campos no vienen en el payload.
+
+## Base de datos
+Migración requerida: `supabase/migrations/v4_4_mobilecommerce02.sql`.
+
+Es aditiva e incorpora configuración de vitrina, campos de merchandising, `catalog_product_reviews` y `catalog_whatsapp_requests`.
+
+## Vercel
+- Conteo `api/*.ts`: 12 (sin aumento de Functions).
+- Desplegar primero en Preview.
+- `GET /api/health` debe responder versión `4.4.0` y protocolo `catalog-v4.4-commerce`.
+
+
+## Alcance
+- Combos no forman parte de esta versión; V4.4.0 se concentra en catálogo por producto, promociones, calificaciones y pedido asistido por WhatsApp.
