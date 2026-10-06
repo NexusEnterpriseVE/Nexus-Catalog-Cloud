@@ -27,6 +27,9 @@ export type CatalogRow = {
   promo_badge:string
   price_usd:number
   price_bs:number
+  wholesale_price_usd:number|null
+  wholesale_price_bs:number|null
+  wholesale_min_quantity:number|null
   stock_exact:number
   availability:'available'|'out'
   image_url:string|null
@@ -52,6 +55,9 @@ export type PublicVariant = {
   name:string
   price_usd:number
   price_bs:number
+  wholesale_price_usd:number|null
+  wholesale_price_bs:number|null
+  wholesale_min_quantity:number|null
   stock_exact:number|null
   availability:'available'|'out'|null
   image_url:string|null
@@ -80,6 +86,9 @@ export type PublicGroup = {
   price_bs:number
   price_bs_max:number
   has_price_range:boolean
+  wholesale_price_usd:number|null
+  wholesale_price_bs:number|null
+  wholesale_min_quantity:number|null
   stock_exact:number|null
   availability:'available'|'out'|null
   image_url:string|null
@@ -126,7 +135,10 @@ export function buildPublicGroups(rows:CatalogRow[],policy:CatalogTenantPolicy):
     const repCandidates=arr.slice().sort((a,b)=>a.source_product_id-b.source_product_id)
     const rep=repCandidates.find(x=>n(x.stock_exact)>0&&x.image_url)||repCandidates.find(x=>!!x.image_url)||repCandidates[0]
     const prices=arr.map(x=>n(x.price_usd)),pricesBs=arr.map(x=>n(x.price_bs))
-    const min=Math.min(...prices),max=Math.max(...prices),minBs=Math.min(...pricesBs),maxBs=Math.max(...pricesBs)
+    const positivePrices=prices.filter(x=>x>0),positivePricesBs=pricesBs.filter(x=>x>0)
+    const min=positivePrices.length?Math.min(...positivePrices):0,max=positivePrices.length?Math.max(...positivePrices):0,minBs=positivePricesBs.length?Math.min(...positivePricesBs):0,maxBs=positivePricesBs.length?Math.max(...positivePricesBs):0
+    const wholesaleRows=arr.filter(x=>n(x.wholesale_price_usd)>0).sort((a,b)=>n(a.wholesale_price_usd)-n(b.wholesale_price_usd)||n(a.wholesale_min_quantity)-n(b.wholesale_min_quantity))
+    const wholesaleRep=wholesaleRows[0]
     const stock=arr.reduce((sum,x)=>sum+Math.max(0,Math.trunc(n(x.stock_exact))),0)
     const updated=arr.map(x=>s(x.updated_at)).filter(Boolean).sort().at(-1)||s(rep.updated_at)
     const variants:PublicVariant[]=arr.map(x=>({
@@ -137,6 +149,9 @@ export function buildPublicGroups(rows:CatalogRow[],policy:CatalogTenantPolicy):
       name:s(x.variant_name)||s(x.name),
       price_usd:n(x.price_usd),
       price_bs:n(x.price_bs),
+      wholesale_price_usd:x.wholesale_price_usd===null||x.wholesale_price_usd===undefined?null:n(x.wholesale_price_usd),
+      wholesale_price_bs:x.wholesale_price_bs===null||x.wholesale_price_bs===undefined?null:n(x.wholesale_price_bs),
+      wholesale_min_quantity:x.wholesale_min_quantity===null||x.wholesale_min_quantity===undefined?null:Math.max(1,Math.trunc(n(x.wholesale_min_quantity))),
       stock_exact:publicStock(policy,n(x.stock_exact)),
       availability:publicAvailability(policy,n(x.stock_exact)),
       image_url:x.image_url||null,
@@ -151,7 +166,8 @@ export function buildPublicGroups(rows:CatalogRow[],policy:CatalogTenantPolicy):
       description:s(rep.description),category:s(rep.category),subcategory:s(rep.subcategory),brand:s(rep.brand),model:s(rep.model),features:s(rep.features),
       featured:arr.some(x=>!!x.featured),recommended:arr.some(x=>!!x.recommended),
       compare_at_price_usd:(()=>{const v=arr.map(x=>x.compare_at_price_usd===null||x.compare_at_price_usd===undefined?0:n(x.compare_at_price_usd)).filter(x=>x>0);return v.length?Math.max(...v):null})(),compare_at_price_bs:(()=>{const v=arr.map(x=>x.compare_at_price_bs===null||x.compare_at_price_bs===undefined?0:n(x.compare_at_price_bs)).filter(x=>x>0);return v.length?Math.max(...v):null})(),promo_badge:arr.map(x=>s(x.promo_badge)).find(Boolean)||'',
-      price_usd:min,price_usd_max:max,price_bs:minBs,price_bs_max:maxBs,has_price_range:Math.abs(max-min)>0.004,
+      price_usd:min,price_usd_max:max,price_bs:minBs,price_bs_max:maxBs,has_price_range:positivePrices.length>1&&Math.abs(max-min)>0.004,
+      wholesale_price_usd:wholesaleRep?n(wholesaleRep.wholesale_price_usd):null,wholesale_price_bs:wholesaleRep&&n(wholesaleRep.wholesale_price_bs)>0?n(wholesaleRep.wholesale_price_bs):null,wholesale_min_quantity:wholesaleRep&&n(wholesaleRep.wholesale_min_quantity)>0?Math.trunc(n(wholesaleRep.wholesale_min_quantity)):null,
       stock_exact:publicStock(policy,stock),availability:publicAvailability(policy,stock),image_url:rep.image_url||null,gallery_urls:Array.isArray(rep.gallery_urls)&&rep.gallery_urls.length?rep.gallery_urls:(rep.image_url?[rep.image_url]:[]),updated_at:updated,
       variant_count:variants.length,variant_labels:variants.map(v=>v.label).filter(Boolean),variants
     })
@@ -178,7 +194,7 @@ export function buildSofiaGroups(rows:CatalogRow[]){
       variant_count:arr.length,
       variants:arr.map(x=>({
         source_product_id:x.source_product_id,sku:s(x.sku),label:s(x.variant_label)||s(x.variant_name)||s(x.sku),attributes:attrs(x.variant_attributes),name:s(x.variant_name)||s(x.name),
-        price_usd:n(x.price_usd),price_bs:n(x.price_bs),stock_exact:Math.max(0,Math.trunc(n(x.stock_exact))),availability:n(x.stock_exact)>0?'available':'out',image_url:x.image_url||null,gallery_urls:Array.isArray(x.gallery_urls)&&x.gallery_urls.length?x.gallery_urls:(x.image_url?[x.image_url]:[])
+        price_usd:n(x.price_usd),price_bs:n(x.price_bs),wholesale_price_usd:x.wholesale_price_usd===null||x.wholesale_price_usd===undefined?null:n(x.wholesale_price_usd),wholesale_price_bs:x.wholesale_price_bs===null||x.wholesale_price_bs===undefined?null:n(x.wholesale_price_bs),wholesale_min_quantity:x.wholesale_min_quantity===null||x.wholesale_min_quantity===undefined?null:Math.max(1,Math.trunc(n(x.wholesale_min_quantity))),stock_exact:Math.max(0,Math.trunc(n(x.stock_exact))),availability:n(x.stock_exact)>0?'available':'out',image_url:x.image_url||null,gallery_urls:Array.isArray(x.gallery_urls)&&x.gallery_urls.length?x.gallery_urls:(x.image_url?[x.image_url]:[])
       }))
     }
   })

@@ -136,3 +136,16 @@ Usa un token de lectura propio por tenant. Nunca entregar a Sofía `SUPABASE_SER
 8. Solo después hacer merge a `main` / Production.
 
 La actualización del storefront no cambia la fuente de verdad ni requiere duplicar productos.
+
+
+## v4.6.0 · Commerce Theme
+
+Esta versión agrega un tema comercial opcional inspirado en la jerarquía visual del respaldo de Distribuidora Vargas sin reemplazar la arquitectura CUYRA.
+
+- El Admin Cloud puede activar `Commerce` como override visual por empresa.
+- La sincronización CUYRA → Cloud conserva su token, endpoints y protocolo actuales.
+- `sync-settings` fusiona la configuración enviada por CUYRA con ajustes Cloud para no borrar el tema, métodos de pago, carriers, anuncios o logos configurados en Admin.
+- Precio base `0` se muestra como **Consultar** y no se permite finalizar un pedido con productos sin precio.
+- Precio mayorista y cantidad mínima son opcionales y se administran desde Admin Cloud.
+
+Antes de activar precio mayorista, ejecutar `v4_6_commerce_theme.sql` en el proyecto Supabase correspondiente.

@@ -1,0 +1,41 @@
+CUYRA Catalog Cloud v4.6.0 · Commerce Theme
+QA local - 2026-10-06
+
+RESULTADO GENERAL
+PASS con limitación de entorno: no fue posible ejecutar el build completo de Vite porque este contenedor no tiene node_modules/dependencias npm instaladas. Se validaron sintaxis, módulos puros y compatibilidad estática de la conexión.
+
+CONEXIÓN CUYRA DESKTOP -> CLOUD
+PASS  api/sync-product.ts: idéntico byte a byte a v4.5.1.
+PASS  server/security.ts: idéntico byte a byte a v4.5.1.
+PASS  server/supabase.ts: idéntico byte a byte a v4.5.1.
+PASS  api/sync-settings.ts conserva el mismo request contract; sólo cambia commerce_settings_json de reemplazo total a merge con la configuración Cloud existente.
+PASS  El Commerce Theme usa commerce_settings_json.visualTheme y NO reemplaza catalog_theme sincronizado desde Desktop.
+
+COMMERCE THEME
+PASS  Tema visual Commerce agregado como override Cloud/Admin.
+PASS  Tarjetas con Detal / Mayor / badges / rating / disponibilidad.
+PASS  Responsive: 4/3/2 columnas según ancho, con 2 columnas móviles.
+PASS  Precio 0 se muestra como "Consultar".
+PASS  Producto sin precio no se agrega al checkout como $0.
+PASS  Checkout API rechaza items con precio canónico <= 0 (HTTP 409).
+
+MAYORISTA
+PASS  Campos opcionales: wholesale_price_usd, wholesale_price_bs, wholesale_min_quantity.
+PASS  Agregación de variantes probada: una variante $0 no convierte un grupo con precio válido en "Desde $0".
+PASS  Precio mayorista + mínimo se exponen en catálogo y producto.
+PASS  Admin puede editar precio mayorista y mínimo sin modificar price_usd sincronizado desde CUYRA.
+
+PRUEBAS TÉCNICAS
+PASS  public/nexus-admin-tenant-7f4b2.js: node --check.
+PASS  nexus-admin-tenant-7f4b2.js: node --check.
+PASS  server/catalog-v4.ts compila de forma aislada con TypeScript ES2022.
+PASS  Test Node de agrupación retail/mayorista.
+PASS  tsc parser scan: sin errores de sintaxis TS/JSX.
+INFO  El tsc completo reporta módulos/tipos faltantes (@types/node, React/Supabase, etc.) porque node_modules no está instalado en este entorno.
+
+ANTES DE PUBLICAR ESTA VERSIÓN
+1. Ejecutar una sola vez v4_6_commerce_theme.sql en el proyecto Supabase.
+2. Desplegar esta carpeta/ZIP en Vercel como actualización del catálogo.
+3. Entrar al Admin y seleccionar Tema visual -> Commerce.
+4. Hacer una sincronización normal desde CUYRA Desktop y verificar que el tema Commerce permanezca activo.
+5. Probar un producto con precio normal, uno sin precio y uno con precio mayorista.
