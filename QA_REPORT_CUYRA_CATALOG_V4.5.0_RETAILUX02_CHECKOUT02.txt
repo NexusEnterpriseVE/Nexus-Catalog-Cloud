@@ -1,26 +1,44 @@
-CUYRA CATALOG V4.2.0 GALLERY01 — QA REPORT
-UTC 2026-08-25 12:47:58
+CUYRA CATALOG CLOUD V4.3.0 · MOBILECOMMERCE01 · QA REPORT
+===========================================================
 
---- qa_static.py
-CLOUD_QA_STATIC_OK
-V4_GROUP_VARIANTS_OK
-SOFIA_SEPARATE_READ_TOKEN_OK
-CUYRA_UI02_OK
-COMMERCEUX01_OK
-CATALOGANALYTICS01_OK
-PWA01_OK
-WHITE_LABEL_TENANT_OK
-PUBLIC_PRIVATE_VISIBILITY_SPLIT_OK
-RLS_DIRECT_ACCESS_GUARD_OK
+BASE
+- V4.2.0 GALLERY01 FULL SOURCE
+- Sin migración SQL nueva para V4.3.0
 
---- qa_v420_gallery01.py
-QA CUYRA CATALOG V4.2.0 GALLERY01: OK
- - gallery_urls aditivo y backfill de image_url
- - sincronización máx. 5 imágenes y portada
- - storefront con miniaturas/swipe conceptual y lightbox/zoom
- - API pública/Sofía conservan galería
+ALCANCE
+- Home móvil tipo web-app.
+- Header móvil: menú + tenant + favoritos + pedido.
+- Accesos rápidos y rail horizontal de categorías.
+- Navegación inferior fija.
+- Catálogo móvil 2 columnas + quick-add.
+- Filtros bottom sheet con acciones Limpiar / Ver N productos.
+- Filtros de categoría, subcategoría, marca, rango de precio, destacados y disponibles.
+- minPrice/maxPrice reutilizan soporte existente de /api/catalog.
+- featured=1 agregado como filtro aditivo sobre el campo featured existente.
 
---- node syntax
-NODE_STATIC_SYNTAX_OK
+QA EJECUTADO EN ESTE ENTORNO
+[OK] qa_v420_gallery01.py
+[OK] qa_v430_mobilecommerce01.py
+[OK] qa_static.py
+[OK] TypeScript/TSX syntax-only parse: src/main.tsx
+[OK] TypeScript syntax-only parse: api/catalog.ts
+[OK] CSS braces balance: 932 / 932
+[OK] No existe migración supabase v4_3*.sql
 
-LIMITACION: npm install agotó el timeout de red en este entorno, por lo que el build Vite real debe validarse en Vercel/entorno con dependencias disponibles.
+CONTINUIDAD COMPROBADA
+- GALLERY01 preservado.
+- Producto padre + variantes preservado.
+- Favoritos / vistos recientemente / lista de pedido preservados.
+- WhatsApp estructurado preservado.
+- Analytics preservado.
+- Token privado de Sofía / separación public-private preservados.
+- PWA preservada y service-worker cache actualizado a v4.3.0.
+- White-label: tenant protagonista / Powered by CUYRA preservado.
+
+LIMITACIÓN DEL ENTORNO
+- npm install agotó el tiempo de espera y no dejó node_modules, por lo que no se ejecutó `npm run build` local.
+- El source fue validado sintácticamente con TypeScript 5.8.3 y los QA estáticos acumulativos.
+- Recomendación: desplegar primero en Preview de Vercel; Vercel resolverá dependencias y ejecutará el build real antes de publicar.
+
+CRITERIO DE PUBLICACIÓN
+No pasar a Production si el Preview falla en build, si /api/health no reporta 4.3.0 o si un tenant real pierde productos, variantes, imágenes, stock, filtros o pedido.
