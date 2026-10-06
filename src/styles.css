@@ -665,3 +665,72 @@ main{overflow:clip}
   .product-page .mobile-dock-price strong{font-size:12px!important}
   .product-page .detail-benefit-row span{font-size:6.5px!important;padding-left:3px!important;padding-right:3px!important}
 }
+
+
+/* CUYRA Catalog v4.6.0 · Commerce Theme
+   Inspirado en la jerarquía comercial del respaldo de Distribuidora Vargas,
+   manteniendo white-label y el motor CUYRA existente. */
+.theme-commerce{--commerce-ink:#111827;--commerce-muted:#64748b;--commerce-soft:#f6f7f9;--commerce-line:#e7e9ee;background:#fff}
+.theme-commerce main{max-width:1320px}
+.theme-commerce .grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.theme-commerce .home-product-rail{grid-auto-columns:minmax(245px,1fr)}
+.theme-commerce .commerce-product-card{border:1px solid var(--commerce-line);border-radius:20px;box-shadow:0 1px 2px rgba(15,23,42,.03);background:#fff;overflow:hidden;transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease}
+.theme-commerce .commerce-product-card:hover{transform:translateY(-3px);box-shadow:0 16px 34px rgba(15,23,42,.08);border-color:#d9dde5}
+.theme-commerce .commerce-product-card .product-media-wrap{height:255px;flex-basis:255px;background:#f6f6f8;border-bottom:0}
+.theme-commerce .commerce-product-card .product-image{padding:18px}
+.theme-commerce .commerce-product-card .product-image img{transition:transform .45s ease}
+.theme-commerce .commerce-product-card:hover .product-image img{transform:scale(1.045)}
+.theme-commerce .commerce-product-card .favorite-btn{top:12px;right:12px;bottom:auto;border-radius:50%;background:rgba(255,255,255,.94)}
+.theme-commerce .commerce-product-card .promo-badge,.theme-commerce .commerce-product-card .featured-badge{font-size:8px;padding:7px 10px;border-radius:999px;text-transform:none;letter-spacing:0;background:var(--tenant-accent);color:#fff}
+.theme-commerce .commerce-out-overlay{position:absolute;inset:0;background:rgba(255,255,255,.55);backdrop-filter:blur(2px);display:grid;place-items:center;z-index:1;pointer-events:none}
+.theme-commerce .commerce-out-overlay span{background:#111827;color:#fff;border-radius:999px;padding:8px 12px;font-size:8px;font-weight:950;text-transform:uppercase;letter-spacing:.12em}
+.theme-commerce .commerce-card-copy{padding:14px 14px 13px;min-height:224px}
+.theme-commerce .commerce-card-head{min-height:92px}
+.theme-commerce .commerce-product-card .product-meta{margin:0 0 5px;color:var(--tenant-accent);font-size:7px;font-weight:950;letter-spacing:.13em}
+.theme-commerce .commerce-product-card .product-name{font-size:14px;line-height:1.28;min-height:36px;font-weight:900;color:var(--commerce-ink)}
+.theme-commerce .commerce-product-card .product-sku{margin-top:5px}
+.theme-commerce .commerce-product-card .rating-line{margin:7px 0 0}
+.theme-commerce .commerce-price-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto}
+.theme-commerce .commerce-price-box{min-width:0;border-radius:13px;padding:9px 10px;display:flex;flex-direction:column;justify-content:center;min-height:72px}
+.theme-commerce .commerce-price-box>span{font-size:7px;font-weight:950;text-transform:uppercase;letter-spacing:.12em;margin-bottom:3px}
+.theme-commerce .commerce-price-box strong{font-size:14px;line-height:1.1;font-weight:950;letter-spacing:-.035em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.theme-commerce .commerce-price-box strong em{font-style:normal;font-size:8px;font-weight:800}
+.theme-commerce .commerce-price-box del{font-size:8px;color:#98a2b3;line-height:1}
+.theme-commerce .commerce-price-box small{font-size:7px;color:#7b8798;margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.theme-commerce .retail-price{background:#f7f8fa;color:#101828}
+.theme-commerce .retail-price>span{color:#667085}
+.theme-commerce .wholesale-price{background:color-mix(in srgb,var(--tenant-accent) 9%,#fff);color:color-mix(in srgb,var(--tenant-accent) 76%,#111827)}
+.theme-commerce .wholesale-price>span{color:var(--tenant-accent)}
+.theme-commerce .commerce-card-foot{min-height:28px;margin-top:8px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.theme-commerce .commerce-card-foot>a{display:flex;align-items:center;gap:4px;font-size:8px;font-weight:900;color:var(--tenant-accent);white-space:nowrap}
+.theme-commerce .commerce-availability{display:flex;align-items:center;gap:4px;min-width:0;font-size:8px;font-weight:850;color:#18815d}
+.theme-commerce .commerce-availability.out{color:#667085}
+.theme-commerce .detail-wholesale{display:inline-flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin:-2px 0 13px;padding:10px 12px;border-radius:13px;background:color-mix(in srgb,var(--tenant-accent) 8%,#fff)}
+.theme-commerce .detail-wholesale span{font-size:8px;font-weight:950;text-transform:uppercase;letter-spacing:.1em;color:var(--tenant-accent)}
+.theme-commerce .detail-wholesale strong{font-size:17px;color:color-mix(in srgb,var(--tenant-accent) 78%,#111827)}
+.theme-commerce .detail-wholesale small{font-size:8px;color:#667085}
+
+@media(max-width:1050px){.theme-commerce .grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){
+  .theme-commerce .grid,.theme-commerce .related-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .theme-commerce .commerce-product-card{border-radius:14px;box-shadow:none}
+  .theme-commerce .commerce-product-card .product-media-wrap{height:clamp(145px,43vw,185px);flex-basis:clamp(145px,43vw,185px)}
+  .theme-commerce .commerce-product-card .product-image{padding:10px}
+  .theme-commerce .commerce-card-copy{padding:9px 9px 10px;min-height:188px}
+  .theme-commerce .commerce-card-head{min-height:75px}
+  .theme-commerce .commerce-product-card .product-meta{font-size:6px;margin-bottom:4px}
+  .theme-commerce .commerce-product-card .product-name{font-size:10px;line-height:1.22;min-height:36px;-webkit-line-clamp:3}
+  .theme-commerce .commerce-product-card .product-sku{font-size:6px;margin-top:4px}
+  .theme-commerce .commerce-product-card .rating-line{margin:5px 0 0;gap:3px}
+  .theme-commerce .commerce-price-grid{gap:5px;margin-top:5px}
+  .theme-commerce .commerce-price-box{border-radius:9px;padding:6px;min-height:58px}
+  .theme-commerce .commerce-price-box>span{font-size:5.5px;margin-bottom:2px}
+  .theme-commerce .commerce-price-box strong{font-size:10px}
+  .theme-commerce .commerce-price-box strong em{font-size:6px}
+  .theme-commerce .commerce-price-box del,.theme-commerce .commerce-price-box small{font-size:5.5px}
+  .theme-commerce .commerce-card-foot{margin-top:5px;min-height:18px}
+  .theme-commerce .commerce-card-foot>a,.theme-commerce .commerce-availability{font-size:6.5px}
+  .theme-commerce .commerce-card-foot svg{width:10px;height:10px}
+  .theme-commerce .commerce-product-card .favorite-btn{width:30px!important;height:30px!important;top:7px!important;right:7px!important}
+  .theme-commerce .commerce-product-card .promo-badge,.theme-commerce .commerce-product-card .featured-badge{font-size:5.5px!important;padding:5px 7px!important}
+}
