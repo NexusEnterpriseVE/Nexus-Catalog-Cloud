@@ -1,3 +1,13 @@
+# CUYRA Catalog Cloud v4.6.1 · VARGASUX01
+
+> **Tema público actual:** port completo de la experiencia `importadora-vargas-main` sobre el motor CUYRA. Se trasladaron composición, jerarquía visual, tarjetas, responsive, navegación y animaciones del tema de referencia sin sustituir la arquitectura multi-tenant de CUYRA.
+
+**Importante:** Daca, Rican y los demás catálogos siguen siendo tenants independientes. CUYRA Desktop continúa sincronizando productos, precio base, stock, imágenes y variantes hacia el tenant correspondiente. V4.6.1 no cambia los endpoints críticos de sincronización.
+
+**Base de datos:** no hay migración nueva en V4.6.1. Esta versión presupone la migración aditiva de V4.6.0 (`v4_6_commerce_theme.sql`) ya aplicada.
+
+---
+
 # CUYRA Catalog Cloud V4.5.0 · RETAILUX02 + CHECKOUT02
 
 > Update acumulativo no destructivo sobre V4.4.1. Conserva MOTIONUX01 + ADMINBANNERUX01 y añade RETAILUX02 + CHECKOUT02: rediseño retail responsive, navegación/búsqueda premium, cards/ficha V3 y checkout de solicitud estructurado hacia WhatsApp. Requiere la migración aditiva `supabase/migrations/v4_5_retailux_checkout.sql` para persistir los datos enriquecidos del checkout.

@@ -1,0 +1,15 @@
+CUYRA Catalog Cloud v4.6.1 · VARGASUX01 — QA estático
+
+PASS - TypeScript/TSX transpileModule: 0 diagnósticos sintácticos.
+PASS - Balance de llaves CSS validado.
+PASS - Unicidad de funciones principales del port validada.
+PASS - api/sync-product.ts byte-identical a v4.6.0.
+PASS - api/sync-settings.ts byte-identical a v4.6.0.
+PASS - server/supabase.ts byte-identical a v4.6.0.
+PASS - api/catalog.ts byte-identical a v4.6.0.
+PASS - api/product.ts byte-identical a v4.6.0.
+PASS - v4_6_commerce_theme.sql byte-identical a v4.6.0.
+PASS - CSS responsive incluye desktop/tablet/mobile y prefers-reduced-motion.
+PASS - Precio 0/null se representa como Consultar mediante displayMoney/hasPrice existente.
+
+NOTA: el contenedor de trabajo no incluye node_modules ni dependencias globales Vite/React, por lo que no se ejecutó `vite build` dentro de este sandbox. Vercel instalará dependencias desde package.json durante el deployment.
