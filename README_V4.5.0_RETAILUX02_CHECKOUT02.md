@@ -1,12 +1,23 @@
-# CUYRA Catalog Cloud V4.5.0
+# CUYRA Catalog V4.1.0 HF03 · MOBILEUX01 + WAFIX01
 
-Update no destructivo sobre V4.4.1.
+Hotfix acumulativo sobre HF02 CARDFIX01.
 
-1. Aplicar `supabase/migrations/v4_5_retailux_checkout.sql`.
-2. Mantener sin cambios las variables de entorno existentes.
-3. Desplegar el proyecto en Vercel.
-4. Probar sincronización desde CUYRA y confirmar que los productos siguen entrando por `/api/sync-product`.
-5. Desde el administrador privado, configurar mensajes, retiro, agencias, métodos de pago y logos de marcas si aplica.
-6. Ejecutar `python scripts/qa/qa_v450_retailux_checkout.py`.
+## Corrige
+- WhatsApp en teléfonos venezolanos guardados como `04XX...`: los convierte a formato internacional `58...` antes de abrir `wa.me`.
+- Vista de producto móvil dedicada, sin contenedores rígidos de escritorio.
+- Soporte de `safe-area` para iPhone.
+- Header móvil más compacto.
+- Menús, filtros, favoritos y lista como bottom sheets.
+- Dock inferior móvil de compra con `Lista` + `Pedir por WhatsApp`.
+- Oculta los botones flotantes que tapaban contenido dentro de la ficha móvil.
+- Cards del catálogo a una columna en teléfonos para evitar diseño comprimido y variantes torcidas.
+- Responsive de precio, SKU, variantes, compra asistida, acordeones y relacionados.
 
-No se requiere migración de tenants, tokens, slugs, productos o Storage.
+## GitHub
+Este hotfix NO modifica `api/`, `server/` ni `supabase/`.
+Solo reemplaza:
+1. `src/main.tsx`
+2. `src/styles.css`
+3. `index.html`
+
+El conteo de funciones Serverless permanece en 12.

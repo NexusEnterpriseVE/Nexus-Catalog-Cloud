@@ -1,17 +1,20 @@
-# CUYRA Catalog V4.1.0 HF05 · MOBILECARD01 + QTYUX01
+# CUYRA Catalog Cloud V4.2.0 · GALLERY01
 
-Hotfix visual/UX para móvil.
+Actualización acumulativa sobre V4.1.0 HF06 MEDIAFIT02.
 
-## Corrige
-- Nombres largos de productos en cards móviles.
-- Cards con variantes demasiado cargadas.
-- Alineación consistente de precio y acciones.
-- Selector de cantidad pequeño/ilegible en la ficha de producto.
-- Tokens `\\n` literales heredados en el bloque CSS HF03.
+## Nuevo
+- `gallery_urls` aditivo en productos cloud.
+- Backfill de `image_url` a galería para productos existentes.
+- Sincronización de hasta 5 imágenes desde CUYRA Principal.
+- La imagen principal sigue siendo `image_url` para compatibilidad y cards.
+- PDP con galería, miniaturas, navegación, lightbox/zoom y soporte móvil.
+- API pública y endpoints Sofía incluyen la galería sin exponer datos privados.
 
-## GitHub
-Reemplazar únicamente:
-- `src/main.tsx`
-- `src/styles.css`
+## Deployment
+1. Aplicar `supabase/migrations/v4_2_product_gallery.sql`.
+2. Desplegar V4.2.0 GALLERY01.
+3. Confirmar `/api/health`.
+4. Sincronizar un producto de prueba desde Principal V3.10.0 GLOBAL01.
+5. Validar un producto antiguo de una foto y uno nuevo de 2–5 fotos.
 
-No modificar `api/`, `server/`, `supabase/`, variables de entorno ni tokens.
+No elimina productos, tenants ni imágenes actuales.
