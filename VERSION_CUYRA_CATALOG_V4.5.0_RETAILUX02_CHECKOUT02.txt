@@ -1,6 +1,8 @@
-CUYRA Catalog Cloud V4.5.0
-Release: RETAILUX02 + CHECKOUT02
-Baseline: V4.4.1 MOTIONUX01 + ADMINBANNERUX01
-Compatibility: additive / backward-compatible
-Source of truth: CUYRA
-Checkout semantics: request-only; no automatic sale, stock reservation or cash movement.
+CUYRA Catalog Cloud V4.1.0 · HF03 · MOBILEUX01 + WAFIX01
+- WhatsApp local Venezuela normalization to international E.164 for wa.me
+- Purpose-built mobile product screen
+- Mobile bottom action dock
+- Bottom-sheet menus/list/favorites/filters
+- Safe-area support for iPhone
+- Single-column premium product cards on phone
+- No API/serverless count changes
