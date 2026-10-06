@@ -59,9 +59,11 @@ function money(v:number,currency='USD'){
   catch{return `$${Number(v||0).toFixed(2)}`}
 }
 function effectiveTheme(tenant:Tenant|null|undefined){
-  const visual=tenant?.commerce_settings_json?.visualTheme
-  return visual==='commerce'?'commerce':(tenant?.catalog_theme||'retail')
+  // V4.6.1 VARGASUX: el storefront comercial es la experiencia pública estándar.
+  // El tenant sigue resolviendo datos, branding, contacto y productos de forma independiente.
+  return tenant?'commerce':'retail'
 }
+
 function hasPrice(v:unknown){return Number(v)>0}
 function displayMoney(v:unknown){return hasPrice(v)?money(Number(v)):'Consultar'}
 function bs(v:number){return `Bs ${Number(v||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})}`}
@@ -144,14 +146,9 @@ function CuyraMark({compact=false,dark=false}:{compact?:boolean;dark?:boolean}){
 function WhatsAppIcon({size=22}:{size?:number}){return <svg className="whatsapp-icon" width={size} height={size} viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16.01 3.2c-7.05 0-12.78 5.61-12.78 12.51 0 2.21.59 4.37 1.72 6.26L3.1 28.8l7.03-1.8a12.93 12.93 0 0 0 5.88 1.42h.01c7.04 0 12.78-5.61 12.78-12.51 0-3.34-1.33-6.48-3.74-8.84A12.8 12.8 0 0 0 16.01 3.2Zm0 22.99h-.01a10.66 10.66 0 0 1-5.43-1.49l-.39-.23-4.17 1.07 1.11-4.03-.26-.41a10.18 10.18 0 0 1-1.59-5.39c0-5.67 4.82-10.28 10.75-10.28 2.87 0 5.57 1.09 7.6 3.08a10.08 10.08 0 0 1 3.14 7.2c-.01 5.67-4.83 10.28-10.75 10.28Zm5.89-7.69c-.32-.16-1.91-.92-2.21-1.03-.3-.11-.52-.16-.74.16-.22.32-.85 1.03-1.04 1.24-.19.22-.38.24-.71.08-.32-.16-1.36-.49-2.6-1.56-.96-.84-1.61-1.88-1.8-2.2-.19-.32-.02-.49.14-.65.15-.14.32-.38.49-.57.16-.19.22-.32.32-.54.11-.22.05-.41-.03-.57-.08-.16-.74-1.73-1.01-2.37-.27-.64-.54-.55-.74-.56h-.63c-.22 0-.57.08-.88.41-.3.32-1.15 1.1-1.15 2.69 0 1.59 1.18 3.13 1.34 3.34.16.22 2.32 3.47 5.63 4.87.79.34 1.4.54 1.88.69.79.25 1.51.21 2.08.13.64-.09 1.91-.76 2.18-1.49.27-.73.27-1.35.19-1.49-.08-.13-.3-.21-.62-.37Z"/></svg>}
 
 function AnnouncementBar({tenant}:{tenant:Tenant|null}){
-  const messages=useMemo(()=>{
-    if(!tenant)return['Catálogos empresariales diseñados para vender','Explora productos desde cualquier dispositivo','Experiencias comerciales conectadas']
-    const configured=(tenant.commerce_settings_json?.announcements||[]).map(x=>String(x||'').trim()).filter(Boolean)
-    return [...configured,tenant.announcement].filter(Boolean).length?[...configured,tenant.announcement].filter(Boolean) as string[]:['Envíos nacionales disponibles','Compra fácil y atención directa','Descubre promociones y productos destacados']
-  },[tenant])
-  const[index,setIndex]=useState(0)
-  useEffect(()=>{setIndex(0);if(messages.length<2)return;const id=setInterval(()=>setIndex(x=>(x+1)%messages.length),4400);return()=>clearInterval(id)},[messages])
-  return <div className="announcement" style={tenant?{'--tenant-accent':tenant.accent_color||'#1368ff'} as React.CSSProperties:undefined}><button className="announcement-arrow" onClick={()=>setIndex(i=>(i-1+messages.length)%messages.length)} aria-label="Mensaje anterior"><ChevronLeft/></button><div className="announcement-track"><span key={`${index}-${messages[index]}`}>{messages[index]}</span></div><button className="announcement-arrow" onClick={()=>setIndex(i=>(i+1)%messages.length)} aria-label="Mensaje siguiente"><ChevronRight/></button></div>
+  const configured=(tenant?.commerce_settings_json?.announcements||[]).map(x=>String(x||'').trim()).filter(Boolean)
+  const message=configured[0]||tenant?.announcement||'Envíos nacionales · Atención directa por WhatsApp'
+  return <div className="iv-topline" style={tenant?{'--tenant-accent':tenant.accent_color||'#001A9C'} as React.CSSProperties:undefined}><Truck size={15}/><span>{message}</span></div>
 }
 
 function useNavFacets(slug:string,enabled:boolean){
@@ -170,39 +167,29 @@ function useNavFacets(slug:string,enabled:boolean){
 
 type HeaderProps={tenant:Tenant|null;facets?:NavFacets;favoriteCount?:number;orderCount?:number;onFavorites?:()=>void;onOrder?:()=>void}
 function Header({tenant,facets,favoriteCount=0,orderCount=0,onFavorites,onOrder}:HeaderProps){
-  const[mobileOpen,setMobileOpen]=useState(false),[searchOpen,setSearchOpen]=useState(false),[headerQ,setHeaderQ]=useState('')
-  const phone=phoneDigits(tenant?.phone||''),slug=tenant?.slug||'',categories=facets?.categories||[],brands=facets?.brands||[]
+  const[searchOpen,setSearchOpen]=useState(false),[headerQ,setHeaderQ]=useState('')
+  const slug=tenant?.slug||''
   const submitSearch=(e:React.FormEvent)=>{e.preventDefault();const q=headerQ.trim();if(!q)return;location.href=`${collectionUrl(slug,{q})}#productos`}
   return <>
     <AnnouncementBar tenant={tenant}/>
-    <header className="top-wrap"><div className="top">
-      {tenant&&<button className="mobile-leading-menu" onClick={()=>setMobileOpen(true)} aria-label="Abrir menú"><Menu size={22}/></button>}
-      <a className="brand" href={tenant?collectionUrl(tenant.slug):'/'}>{tenant?.logo_url?<img className="tenant-logo" src={tenant.logo_url} alt={tenant.public_name}/>:tenant?<div className="mark">{tenant.public_name.slice(0,1).toUpperCase()}</div>:<CuyraMark dark/>}{tenant&&<div className="brand-copy"><b>{tenant.public_name}</b><span>Catálogo online</span></div>}</a>
-      {tenant&&<nav className="desktop-nav" aria-label="Navegación principal">
-        {tenant.show_brand_filter!==false&&brands.length>0&&<details className="nav-dropdown"><summary>Marcas <ChevronDown size={14}/></summary><div className="nav-panel brand-panel"><div className="nav-panel-title"><Tag size={16}/> Marcas</div>{brands.slice(0,18).map(x=><a key={x} href={`${collectionUrl(slug,{brand:x})}#productos`}>{x}<ArrowRight size={13}/></a>)}</div></details>}
-        {tenant.show_category_nav!==false&&categories.length>0&&<details className="nav-dropdown"><summary>Categorías <ChevronDown size={14}/></summary><div className="nav-panel"><div className="nav-panel-title"><Grid3X3 size={16}/> Categorías</div>{categories.slice(0,16).map(x=><a key={x} href={`${collectionUrl(slug,{category:x})}#productos`}>{x}<ArrowRight size={13}/></a>)}</div></details>}
+    <header className="iv-header"><div className="iv-header-inner">
+      <a className="iv-header-brand" href={tenant?collectionUrl(slug):'/'} aria-label={tenant?`${tenant.public_name}, inicio`:'CUYRA Catalog'}>
+        {tenant?.logo_url?<img src={tenant.logo_url} alt={tenant.public_name}/>:tenant?<span className="iv-logo-fallback">{tenant.public_name.slice(0,1).toUpperCase()}</span>:<CuyraMark dark/>}
+        {tenant&&!tenant.logo_url&&<strong>{tenant.public_name}</strong>}
+      </a>
+      {tenant&&<nav className="iv-desktop-nav" aria-label="Navegación principal">
+        <a href={`${collectionUrl(slug)}#inicio`}>Inicio</a>
+        <a href={`${collectionUrl(slug)}#productos`}>Catálogo</a>
         <a href={`${collectionUrl(slug,{promo:'1'})}#productos`}>Ofertas</a>
+        <a href={`${collectionUrl(slug)}#beneficios`}>Envíos</a>
+        <a href={`${collectionUrl(slug)}#preguntas`}>Políticas</a>
       </nav>}
-      <div className="top-actions">
-        {tenant&&<button className="icon-link header-search-trigger" onClick={()=>setSearchOpen(true)} aria-label="Buscar productos"><Search size={19}/></button>}
-        {tenant&&<button className="icon-link badge-action" onClick={onFavorites} aria-label="Favoritos"><Heart size={18}/>{favoriteCount>0&&<b>{favoriteCount}</b>}</button>}
-        {tenant&&<button className="icon-link badge-action" onClick={onOrder} aria-label="Carrito"><ShoppingBag size={18}/>{orderCount>0&&<b>{orderCount}</b>}</button>}
-        {tenant&&<button className="menu-toggle" onClick={()=>setMobileOpen(true)} aria-label="Abrir menú"><Menu size={21}/></button>}
-      </div>
+      {tenant&&<div className="iv-header-actions">
+        <button onClick={()=>setSearchOpen(true)} aria-label="Buscar productos"><Search size={19}/></button>
+        <button onClick={onOrder} aria-label="Carrito"><ShoppingBag size={19}/>{orderCount>0&&<b>{orderCount}</b>}</button>
+      </div>}
     </div></header>
-
-    {tenant&&searchOpen&&<div className="search-overlay" onClick={()=>setSearchOpen(false)}><div className="search-overlay-card" onClick={(e:any)=>e.stopPropagation()}><div className="search-overlay-head"><span>Buscar en {tenant.public_name}</span><button onClick={()=>setSearchOpen(false)}><X/></button></div><form className="header-search-form" onSubmit={submitSearch}><Search/><input autoFocus value={headerQ} onChange={e=>setHeaderQ(e.target.value)} placeholder="Producto, SKU, marca o categoría..."/><button type="submit">Buscar</button><SearchSuggestions slug={slug} q={headerQ} open={headerQ.trim().length>=2} onPick={()=>setSearchOpen(false)}/></form></div></div>}
-
-    {mobileOpen&&<div className="mobile-nav-backdrop" onClick={()=>setMobileOpen(false)}><aside className="mobile-nav" onClick={(e:any)=>e.stopPropagation()}>
-      <div className="mobile-nav-head"><a className="mobile-menu-brand" href={collectionUrl(slug)}>{tenant?.logo_url?<img src={tenant.logo_url} alt={tenant.public_name}/>:<div className="mark">{tenant?.public_name?.slice(0,1).toUpperCase()}</div>}<span><small>CATÁLOGO</small><b>{tenant?.public_name}</b></span></a><button onClick={()=>setMobileOpen(false)}><X/></button></div>
-      <button className="mobile-search-action" onClick={()=>{setMobileOpen(false);setSearchOpen(true)}}><Search/> Buscar productos</button>
-      <a href={`${collectionUrl(slug,{promo:'1'})}#productos`}>Ofertas <Tag size={16}/></a>
-      <button className="mobile-inline-action" onClick={()=>{setMobileOpen(false);onFavorites?.()}}><Heart size={16}/> Favoritos {favoriteCount>0&&<b>{favoriteCount}</b>}</button>
-      <button className="mobile-inline-action" onClick={()=>{setMobileOpen(false);onOrder?.()}}><ShoppingBag size={16}/> Carrito {orderCount>0&&<b>{orderCount}</b>}</button>
-      {tenant?.show_category_nav!==false&&categories.length>0&&<div className="mobile-nav-group"><span>Categorías</span>{categories.slice(0,12).map(x=><a key={x} href={`${collectionUrl(slug,{category:x})}#productos`}>{x}</a>)}</div>}
-      {tenant?.show_brand_filter!==false&&brands.length>0&&<div className="mobile-nav-group"><span>Marcas</span>{brands.slice(0,12).map(x=><a key={x} href={`${collectionUrl(slug,{brand:x})}#productos`}>{x}</a>)}</div>}
-      {phone&&<a className="mobile-wa" href={openWhatsApp(phone,`Hola ${tenant?.public_name||''}, vengo del catálogo y quisiera recibir atención.`)} target="_blank" rel="noreferrer"><WhatsAppIcon size={19}/> WhatsApp</a>}
-    </aside></div>}
+    {tenant&&searchOpen&&<div className="search-overlay iv-search-overlay" onClick={()=>setSearchOpen(false)}><div className="search-overlay-card iv-search-card" onClick={(e:any)=>e.stopPropagation()}><div className="search-overlay-head"><span>Buscar en {tenant.public_name}</span><button onClick={()=>setSearchOpen(false)}><X/></button></div><form className="header-search-form" onSubmit={submitSearch}><Search/><input autoFocus value={headerQ} onChange={e=>setHeaderQ(e.target.value)} placeholder="Buscar por nombre, SKU o marca"/><button type="submit">Buscar</button><SearchSuggestions slug={slug} q={headerQ} open={headerQ.trim().length>=2} onPick={()=>setSearchOpen(false)}/></form></div></div>}
   </>
 }
 
@@ -242,39 +229,47 @@ function bannerHref(tenant:Tenant,b:Banner){
   if(b.targetValue?.startsWith('/'))return b.targetValue
   return '#productos'
 }
-function StoreHeroCarousel({tenant,total}:{tenant:Tenant;total:number}){
-  const fallback:Banner[]=[
-    {title:tenant.hero_title||`Descubre ${tenant.public_name}`,subtitle:tenant.hero_subtitle||'Explora productos, precios y disponibilidad en una experiencia diseñada para comprar mejor.',ctaLabel:'Explorar catálogo'},
-    {title:'Encuentra lo que buscas más rápido',subtitle:'Marcas, categorías, ofertas y productos en una navegación clara desde cualquier dispositivo.',ctaLabel:'Ver productos'},
-    {title:'Compra fácil desde tu teléfono',subtitle:'Agrega productos al carrito, completa tus datos y envía tu pedido organizado por WhatsApp.',ctaLabel:'Comprar ahora'}
-  ]
-  const items=(Array.isArray(tenant.banners_json)&&tenant.banners_json.length?tenant.banners_json:fallback).slice(0,5),[index,setIndex]=useState(0),[paused,setPaused]=useState(false),[touchX,setTouchX]=useState<number|null>(null)
-  const move=(delta:number)=>setIndex(i=>(i+delta+items.length)%items.length)
-  useEffect(()=>{if(items.length<2||paused)return;const t=setInterval(()=>move(1),5600);return()=>clearInterval(t)},[items.length,paused])
-  const b=items[index]||items[0],desktopImg=b.imageUrl||b.mobileImageUrl,mobileImg=b.mobileImageUrl||b.imageUrl
-  const touchEnd=(x:number)=>{if(touchX!==null&&Math.abs(x-touchX)>42)move(x<touchX?1:-1);setTouchX(null);setPaused(false)}
-  return <section className={`commerce-hero-carousel ${paused?'is-paused':''}`} id="catalog-home" onMouseEnter={()=>setPaused(true)} onMouseLeave={()=>setPaused(false)} onTouchStart={e=>{setTouchX(e.changedTouches[0].clientX);setPaused(true)}} onTouchEnd={e=>touchEnd(e.changedTouches[0].clientX)}>
-    <div key={`${index}-${b.title}`} className={`commerce-hero-slide ${desktopImg?'has-image':''}`}>
-      {desktopImg&&<picture className="hero-picture"><source media="(max-width:760px)" srcSet={mobileImg||desktopImg}/><img src={desktopImg} alt=""/></picture>}
-      <div className="hero-image-shade"/>
-      <div className="commerce-hero-copy"><span className="eyebrow">{tenant.public_name}</span><h1>{b.title}</h1><p>{b.subtitle}</p><div className="hero-actions"><a className="hero-primary" href={bannerHref(tenant,b)}>{b.ctaLabel||'Ver más'} <ArrowRight size={16}/></a></div></div>
-      {!desktopImg&&<div className="commerce-hero-art"><div className="hero-shop-bag"><ShoppingBag/><b>{total}</b><small>productos</small></div></div>}
+function StoreHeroCarousel({tenant,total,featured}:{tenant:Tenant;total:number;featured?:Product|null}){
+  const configured=(Array.isArray(tenant.banners_json)?tenant.banners_json:[]).filter(Boolean)
+  const heroBanner=configured[0]
+  const title=tenant.hero_title||heroBanner?.title||`Encuentra lo mejor para tu día.`
+  const subtitle=tenant.hero_subtitle||heroBanner?.subtitle||`Explora productos de ${tenant.public_name} con precios claros, atención personalizada y disponibilidad actualizada.`
+  const image=heroBanner?.imageUrl||heroBanner?.mobileImageUrl||featured?.image_url||null
+  const phone=phoneDigits(tenant.phone||'')
+  return <section id="inicio" className="iv-hero">
+    <span className="iv-hero-glow iv-hero-glow-one"/><span className="iv-hero-glow iv-hero-glow-two"/>
+    <div className="iv-hero-inner">
+      <div className="iv-hero-copy">
+        <p className="iv-hero-label"><i/>{tenant.public_name}</p>
+        <h1>{title}</h1>
+        <p className="iv-hero-subtitle">{subtitle}</p>
+        <div className="iv-hero-actions"><a className="iv-primary-pill" href="#productos">Explorar catálogo <ArrowRight size={16}/></a>{phone&&<a className="iv-secondary-pill" href={openWhatsApp(phone,`Hola ${tenant.public_name}, quisiera consultar por un producto.`)} target="_blank" rel="noreferrer">Consultar por WhatsApp <ExternalLink size={15}/></a>}</div>
+        <div className="iv-hero-checks"><span><CheckCircle2/> Atención directa</span><span><CheckCircle2/> Disponibilidad actualizada</span></div>
+      </div>
+      <div className="iv-hero-visual">
+        <div className="iv-hero-art">
+          {image?<img className="iv-hero-art-image" src={image} alt=""/>:<div className="iv-hero-placeholder"><ShoppingBag/><strong>{total}</strong><span>productos disponibles en el catálogo</span></div>}
+          <div className="iv-hero-vignette"/><span className="iv-hero-brand-chip">{tenant.public_name}</span>
+          <a className="iv-hero-featured-card" href={featured?productUrl(tenant.slug,featured.source_product_id):"#productos"}><span className="iv-hero-featured-icon">{featured?.image_url?<img src={featured.image_url} alt=""/>:<Sparkles/>}</span><span><small>{featured?"Producto destacado":"Catálogo conectado"}</small><b>{featured?.name||"Compra fácil, con asesoría."}</b></span><ArrowRight/></a>
+        </div>
+        <div className="iv-hero-float-card"><span><Truck/></span><div><small>Despacho y retiro</small><b>Consulta opciones</b></div></div>
+      </div>
     </div>
-    {items.length>1&&<><button type="button" className="hero-nav prev" onClick={()=>move(-1)} aria-label="Banner anterior"><ChevronLeft/></button><button type="button" className="hero-nav next" onClick={()=>move(1)} aria-label="Banner siguiente"><ChevronRight/></button><div className="hero-dots">{items.map((x,i)=><button key={`${x.title}-${i}`} className={i===index?'active':''} onClick={()=>setIndex(i)} aria-label={`Banner ${i+1}`}/>)}</div><div className="hero-progress"><i key={`progress-${index}`} /></div></>}
   </section>
 }
 
 function BrandCarousel({tenant,brands,active,onSelect}:{tenant:Tenant;brands:string[];active:string;onSelect:(brand:string)=>void}){
   if(!brands.length)return null
-  const logos=tenant.commerce_settings_json?.brandLogos||{}
-  const visible=brands.slice(0,24)
-  return <section className="brand-carousel" aria-label="Marcas"><div className="brand-carousel-head"><span>Marcas</span><small>Explora por fabricante</small></div><div className="brand-carousel-track">{visible.map(x=><button key={x} className={active===x?'active':''} onClick={()=>onSelect(x)}>{logos[x]?<img src={logos[x]} alt={x} loading="lazy"/>:<b>{x}</b>}</button>)}</div></section>
+  const logos=tenant.commerce_settings_json?.brandLogos||{},visible=brands.slice(0,24)
+  const group=(n:number)=><div className="iv-brand-marquee-group" aria-hidden={n===1}>{visible.map(x=><button key={`${n}-${x}`} className={`iv-brand-marquee-item ${active===x?'active':''}`} onClick={()=>onSelect(x)} aria-label={`Ver ${x}`}>{logos[x]?<img src={logos[x]} alt={x} loading="lazy"/>:<b>{x}</b>}</button>)}</div>
+  return <section className="iv-brand-marquee" aria-label="Marcas disponibles"><div className="iv-brand-marquee-track">{group(0)}{group(1)}</div></section>
 }
 
 function CategoryRail({categories,active,onSelect}:{categories:string[];active:string;onSelect:(category:string)=>void}){
   if(!categories.length)return null
-  return <section className="category-rail"><div className="category-rail-head"><div><span className="section-kicker">EXPLORA</span><h2>Categorías</h2></div><button onClick={()=>onSelect('')}>Ver todo <ArrowRight/></button></div><div className="category-rail-track">{categories.slice(0,16).map(x=><button key={x} className={active===x?'active':''} onClick={()=>onSelect(x)}><span>{x}</span><ArrowRight/></button>)}</div></section>
+  return <div className="iv-category-pills"><button className={!active?'active':''} onClick={()=>onSelect('')}>Todos</button>{categories.slice(0,20).map(x=><button key={x} className={active===x?'active':''} onClick={()=>onSelect(x)}>{x}</button>)}</div>
 }
+
 function RatingLine({product:p,large=false}:{product:Product;large?:boolean}){
   const value=Number(p.rating_value||0),count=Number(p.rating_count||0),rounded=Math.round(value)
   return <span className={`rating-line ${count?'':'empty'} ${large?'large':''}`}><span className="rating-stars">{[1,2,3,4,5].map(i=><Star key={i} fill={i<=rounded?'currentColor':'none'}/>)}</span>{count?<><b>{value.toFixed(1)}</b><small>({count})</small></>:<small>Sin valoraciones</small>}</span>
@@ -295,26 +290,52 @@ function CheckoutConfirmation({tenant,items,onClose,onDone}:{tenant:Tenant;items
   return <div className="checkout-screen" role="dialog" aria-modal="true"><div className="checkout-shell checkout-v2"><button className="checkout-close" onClick={onClose}><X/></button><form className="checkout-form" onSubmit={go}><div className="checkout-form-head"><span className="section-kicker">FINALIZAR PEDIDO</span><h1>Completa tus datos</h1><p>Revisaremos disponibilidad y recibirás la confirmación final por WhatsApp.</p></div><section className="checkout-block"><h3><span>1</span> Contacto</h3><div className="checkout-fields two"><label>Nombre y apellido<input value={name} onChange={e=>setName(e.target.value)} autoComplete="name" placeholder="Ej. María Pérez" maxLength={100}/></label><label>Teléfono<input value={phone} onChange={e=>setPhone(e.target.value)} inputMode="tel" autoComplete="tel" placeholder="04XX-XXXXXXX" maxLength={30}/></label></div>{commerce.requireIdDocument&&<label>Cédula / identificación<input value={documentId} onChange={e=>setDocumentId(e.target.value)} placeholder="V-12.345.678" maxLength={40}/></label>}</section><section className="checkout-block"><h3><span>2</span> ¿Cómo quieres recibirlo?</h3><div className="fulfillment-chooser">{commerce.deliveryEnabled!==false&&<button type="button" className={mode==='delivery'?'active':''} onClick={()=>setMode('delivery')}><Truck/><span><b>{commerce.deliveryLabel||'Envío nacional'}</b><small>{commerce.freeShippingEnabled!==false?'Envío gratis según condiciones del comercio.':commerce.deliveryNote||'La tienda confirmará las condiciones.'}</small></span></button>}{commerce.pickupEnabled!==false&&<button type="button" className={mode==='pickup'?'active':''} onClick={()=>setMode('pickup')}><Store/><span><b>{commerce.pickupLabel||'Retiro en tienda'}</b><small>{commerce.pickupAddress||commerce.businessHours||'La tienda confirmará horario y disponibilidad.'}</small></span></button>}</div>{mode==='delivery'&&<><div className="carrier-grid">{carriers.map(x=><button type="button" key={x.id} className={carrier===x.id?'active':''} onClick={()=>setCarrier(x.id)}><Truck/><b>{x.label}</b>{x.free&&<small>Envío gratis</small>}</button>)}</div><div className="checkout-fields two"><label>Estado<input value={state} onChange={e=>setState(e.target.value)} placeholder="Estado" maxLength={80}/></label><label>Ciudad<input value={city} onChange={e=>setCity(e.target.value)} placeholder="Ciudad" maxLength={80}/></label></div><label>Agencia / oficina de destino<input value={agency} onChange={e=>setAgency(e.target.value)} placeholder="Nombre o dirección de la oficina" maxLength={140}/></label></>}</section><section className="checkout-block"><h3><span>3</span> Método de pago</h3><div className="payment-options">{payments.map(x=><button type="button" key={x.id} className={payment===x.id?'active':''} onClick={()=>setPayment(x.id)}><span className="payment-radio"/><b>{x.label}</b>{x.hint&&<small>{x.hint}</small>}</button>)}</div></section><section className="checkout-block"><h3><span>4</span> Observación</h3><textarea value={notes} onChange={e=>setNotes(e.target.value)} maxLength={350} placeholder="Información adicional para la tienda (opcional)"/></section>{error&&<div className="checkout-error">{error}</div>}<button className="checkout-whatsapp" disabled={loading} type="submit">{loading?<><LoaderCircle className="spin"/> Preparando pedido…</>:<><WhatsAppIcon size={21}/> Finalizar por WhatsApp</>}</button><button type="button" className="checkout-back" onClick={onClose}>Volver al carrito</button></form><aside className="checkout-summary"><div className="checkout-summary-title"><ShoppingBag/><span><b>Tu pedido</b><small>{count} {count===1?'unidad':'unidades'}</small></span></div><div className="checkout-items">{items.map(x=><div key={`${x.id}-${x.variantId||0}`}><div className="checkout-item-thumb">{x.imageUrl?<img src={x.imageUrl} alt=""/>:<PackageSearch/>}</div><span><b>{x.name}</b><small>SKU {x.sku}{x.variantLabel?` · ${x.variantLabel}`:''} · x{x.qty}</small></span><strong>{money(x.priceUsd*x.qty)}</strong></div>)}</div><div className="checkout-total"><span>Subtotal</span><strong>{money(total)}</strong></div>{mode==='delivery'&&commerce.freeShippingEnabled!==false&&<div className="checkout-shipping"><span>Envío</span><b>Gratis</b></div>}<p className="checkout-note">El total es referencial. La tienda valida disponibilidad y datos antes de cerrar la venta.</p></aside></div></div>
 }
 
-function TrustGrid({tenant}:{tenant:Tenant}){
-  const commerce=tenant.commerce_settings_json||{}
-  return <section className="trust-section trust-v2"><div className="trust-v2-title"><span className="section-kicker">COMPRA CON CONFIANZA</span><h2>Todo listo para comprar fácil</h2></div><div className="trust-grid"><article><Truck/><div><h3>Envíos nacionales</h3><p>{commerce.freeShippingEnabled!==false?'Consulta opciones de envío disponibles.':'Condiciones de envío según la tienda.'}</p></div></article><article><Store/><div><h3>{commerce.pickupLabel||'Retiro en tienda'}</h3><p>{commerce.pickupAddress||commerce.businessHours||'Consulta horario y disponibilidad.'}</p></div></article><article><WhatsAppIcon size={22}/><div><h3>Atención directa</h3><p>Finaliza tu solicitud y conversa con el equipo de la tienda.</p></div></article><article><ShieldCheck/><div><h3>Pedido organizado</h3><p>Productos, SKU, cantidades y datos de entrega en un solo resumen.</p></div></article></div></section>
+function StoreFaq({tenant}:{tenant:Tenant}){
+  return <section className="iv-faq-section" id="preguntas"><div className="iv-faq-inner"><div className="iv-faq-copy"><span>Compra sencilla</span><h2>Tu compra, clara desde el inicio.</h2><p>Te acompañamos para confirmar producto, disponibilidad, envío y pago antes de completar tu pedido.</p></div><div className="iv-faq-list"><details><summary>¿Cómo hago un pedido?</summary><p>Agrega tus productos al carrito, completa tus datos y selecciona la modalidad de entrega. Al finalizar, enviamos el resumen por WhatsApp.</p></details><details><summary>¿Cómo se confirma la disponibilidad?</summary><p>El catálogo refleja la información sincronizada desde CUYRA y el equipo de {tenant.public_name} confirma la disponibilidad final antes de cerrar el pedido.</p></details><details><summary>¿Cuándo confirmo el pago?</summary><p>La forma de pago se coordina con el equipo antes de completar la compra. Los métodos disponibles aparecen durante el checkout.</p></details></div></div></section>
+}
+function StoreSupportCta({tenant}:{tenant:Tenant}){
+  const phone=phoneDigits(tenant.phone||'')
+  if(!phone)return null
+  return <section className="iv-support-cta"><div><span>Atención directa</span><h2>¿No encuentras lo que necesitas?</h2><p>Escríbenos y te ayudamos a consultar opciones y disponibilidad.</p></div><a href={openWhatsApp(phone,`Hola ${tenant.public_name}, quiero consultar por un producto.`)} target="_blank" rel="noreferrer">Escribir por WhatsApp <ExternalLink size={16}/></a></section>
+}
+function StoreBenefits({tenant}:{tenant:Tenant}){
+  const items=[
+    {icon:'💲',title:'Precios claros',text:'Consulta precio detal y mayor en una misma vista.',kind:'price'},
+    {icon:'🚚',title:'Compra con opciones de entrega',text:'Coordina envío o retiro según la configuración de la tienda.',kind:'delivery'},
+    {icon:'💬',title:'Atención directa',text:`El equipo de ${tenant.public_name} confirma contigo los detalles del pedido.`,kind:'support'},
+    {icon:'✓',title:'Pedido verificado',text:'El resumen se valida antes de enviarlo por WhatsApp.',kind:'check'}
+  ]
+  const[index,setIndex]=useState(0),[paused,setPaused]=useState(false)
+  useEffect(()=>{if(paused)return;const id=setInterval(()=>setIndex(x=>(x+1)%items.length),6000);return()=>clearInterval(id)},[paused])
+  const item=items[index]
+  return <section className="iv-benefits" id="beneficios" data-paused={paused?'true':'false'} onMouseEnter={()=>setPaused(true)} onMouseLeave={()=>setPaused(false)}><span className="iv-benefits-glow"/><div className="iv-benefits-inner"><span className={`iv-benefit-icon iv-benefit-${item.kind}`}>{item.icon}</span><div className="iv-benefit-copy" key={index}><small>Una compra más sencilla</small><h3>{item.title}</h3><p>{item.text}</p></div><div className="iv-benefit-controls"><div className="iv-benefit-dots">{items.map((x,i)=><button key={x.title} className={i===index?'active':''} onClick={()=>setIndex(i)} aria-label={`Mostrar ${x.title}`}/>)}</div><button onClick={()=>setIndex(x=>(x-1+items.length)%items.length)} aria-label="Anterior"><ChevronLeft/></button><button onClick={()=>setIndex(x=>(x+1)%items.length)} aria-label="Siguiente"><ChevronRight/></button></div></div><div key={`progress-${index}`} className="iv-benefit-progress"/></section>
 }
 
 function ProductCard({tenant,product:p,isFavorite,onFavorite,onAdd}:{tenant:Tenant;product:Product;isFavorite:boolean;onFavorite:(p:Product)=>void;onAdd:(p:Product)=>void}){
-  const out=isOut(p),discount=p.compare_at_price_usd&&p.compare_at_price_usd>p.price_usd&&p.price_usd>0?Math.round((1-p.price_usd/p.compare_at_price_usd)*100):0
-  const commerceTheme=effectiveTheme(tenant)==='commerce',priced=hasPrice(p.price_usd),commerce=tenant.commerce_settings_json||{}
+  const out=isOut(p),priced=hasPrice(p.price_usd),commerce=tenant.commerce_settings_json||{}
+  const discount=p.compare_at_price_usd&&p.compare_at_price_usd>p.price_usd&&p.price_usd>0?Math.round((1-p.price_usd/p.compare_at_price_usd)*100):0
   const wholesale=Number(p.wholesale_price_usd||0),wholesaleMin=Math.max(0,Math.trunc(Number(p.wholesale_min_quantity||0)))
-  const add=()=>{if(!priced||(p.variant_count||1)>1){location.href=productUrl(tenant.slug,p.source_product_id);return}onAdd(p)}
-  if(commerceTheme)return <article className={`product-card product-card-v3 commerce-product-card ${out?'is-out':''}`}>
-    <div className="product-media-wrap"><a className="product-image" href={productUrl(tenant.slug,p.source_product_id)} onClick={()=>track(tenant.slug,'product_view',{productId:p.source_product_id,source:'card'})}>{p.image_url?<img src={p.image_url} alt={p.name} loading="lazy" decoding="async"/>:<PackageSearch/>}</a><div className="card-badges">{p.promo_badge?<span className="promo-badge">{p.promo_badge}</span>:discount>0?<span className="promo-badge">-{discount}%</span>:p.featured?<span className="featured-badge">Destacado</span>:null}</div><button className={`favorite-btn ${isFavorite?'active':''}`} onClick={()=>onFavorite(p)} aria-label={isFavorite?'Quitar de favoritos':'Agregar a favoritos'}><Heart size={18} fill={isFavorite?'currentColor':'none'}/></button>{out&&tenant.show_stock_mode!=='hidden'&&<div className="commerce-out-overlay"><span>Agotado</span></div>}</div>
-    <div className="product-copy commerce-card-copy"><div className="commerce-card-head"><div className="product-meta"><span>{p.brand||p.category||'Producto'}</span></div><a className="product-name" href={productUrl(tenant.slug,p.source_product_id)}>{p.name}</a>{(p.variant_count||1)>1&&<div className="product-sku"><Layers3 size={12}/>{p.variant_count} variantes</div>}<RatingLine product={p}/></div>
-      <div className="commerce-price-grid"><div className="commerce-price-box retail-price"><span>{p.has_price_range?'Desde':'Detal'}</span>{p.compare_at_price_usd&&p.compare_at_price_usd>p.price_usd&&p.price_usd>0&&<del>{money(p.compare_at_price_usd)}</del>}<strong>{p.has_price_range&&priced?'Desde ':''}{displayMoney(p.price_usd)}</strong>{p.price_bs>0&&priced&&<small>{p.has_price_range?'Desde ':''}{bs(p.price_bs)}</small>}</div>{commerce.showWholesalePrice!==false&&<div className="commerce-price-box wholesale-price"><span>{commerce.wholesaleLabel||'Mayor'}</span><strong>{wholesale>0?money(wholesale):'Consultar'}{wholesale>0&&<em> c/u</em>}</strong>{wholesaleMin>0&&<small>Desde {wholesaleMin} u.</small>}</div>}</div>
-      <div className="commerce-card-foot"><span className={out?'commerce-availability out':'commerce-availability'}><Truck size={13}/>{tenant.show_stock_mode==='hidden'?'Consultar disponibilidad':out?'Sin disponibilidad':'Disponible'}</span><a href={productUrl(tenant.slug,p.source_product_id)}>Ver producto <ArrowRight size={13}/></a></div>
+  const productHref=productUrl(tenant.slug,p.source_product_id)
+  const stars=Math.max(0,Math.min(5,Math.round(Number(p.rating_value||0)))),ratingCount=Number(p.rating_count||0)
+  const promoLabel=p.promo_badge||((discount>0)?`Oferta · -${discount}%`:'')
+  const detailLabel=p.has_price_range?'Desde':'Detal'
+  const cardBody=(mobile=false)=><>
+    <div className="iv-card-media">
+      <a href={productHref} onClick={()=>track(tenant.slug,'product_view',{productId:p.source_product_id,source:'card'})}>{p.image_url?<img src={p.image_url} alt={p.name} loading="lazy" decoding="async"/>:<span className="iv-card-placeholder">✦</span>}</a>
+      {promoLabel?<span className="iv-card-badge promo">{promoLabel}</span>:p.featured?<span className="iv-card-badge">Destacado</span>:null}
+            {out&&tenant.show_stock_mode!=='hidden'&&<div className="iv-card-soldout"><span>Agotado</span></div>}
     </div>
-  </article>
-  return <article className={`product-card product-card-v3 ${out?'is-out':''}`}>
-    <div className="product-media-wrap"><a className="product-image" href={productUrl(tenant.slug,p.source_product_id)} onClick={()=>track(tenant.slug,'product_view',{productId:p.source_product_id,source:'card'})}>{p.image_url?<img src={p.image_url} alt={p.name} loading="lazy" decoding="async"/>:<PackageSearch/>}</a><div className="card-badges">{p.promo_badge?<span className="promo-badge">{p.promo_badge}</span>:discount>0?<span className="promo-badge">-{discount}%</span>:p.featured?<span className="featured-badge">DESTACADO</span>:null}{tenant.show_stock_mode!=='hidden'&&<span className={out?'stock-badge out':'stock-badge'}><i/>{out?'Agotado':tenant.show_stock_mode==='exact'?stockLabel(tenant,p):'Disponible'}</span>}</div><button className={`favorite-btn ${isFavorite?'active':''}`} onClick={()=>onFavorite(p)} aria-label={isFavorite?'Quitar de favoritos':'Agregar a favoritos'}><Heart size={19} fill={isFavorite?'currentColor':'none'}/></button><div className="card-hover-actions"><a href={productUrl(tenant.slug,p.source_product_id)}>Vista rápida</a><button onClick={add}>{(p.variant_count||1)>1?'Elegir variante':priced?'Agregar':'Consultar'}</button></div></div>
-    <div className="product-copy"><div className="product-meta"><span>{p.brand||p.category||'Producto'}</span>{p.model&&<small>{p.model}</small>}</div><a className="product-name" href={productUrl(tenant.slug,p.source_product_id)}>{p.name}</a><div className="product-sku">{(p.variant_count||1)>1?<><Layers3 size={12}/>{p.variant_count} variantes</>:<>SKU {p.sku}</>}</div><RatingLine product={p}/><div className="prices">{p.compare_at_price_usd&&p.compare_at_price_usd>p.price_usd&&p.price_usd>0&&<del>{money(p.compare_at_price_usd)}</del>}<strong>{p.has_price_range&&priced?'Desde ':''}{displayMoney(p.price_usd)}</strong>{p.price_bs>0&&priced&&<span>{p.has_price_range?'Desde ':''}{bs(p.price_bs)}</span>}</div><div className="card-actions"><a className="details-btn" href={productUrl(tenant.slug,p.source_product_id)}>Ver producto <ArrowRight size={14}/></a><button className="add-list-btn" onClick={add} title={(p.variant_count||1)>1?'Elegir variante':priced?'Agregar al carrito':'Consultar'}>{(p.variant_count||1)>1?<Layers3 size={17}/>:priced?<Plus size={18}/>:<ArrowRight size={17}/>}</button></div></div>
+    <div className="iv-card-body">
+      <p className="iv-card-brand">{p.brand||p.category||'Producto'}</p>
+      <a className="iv-card-name" href={productHref}>{p.name}</a>
+      <div className="iv-card-rating" aria-label={ratingCount?`${Number(p.rating_value||0).toFixed(1)} de 5 estrellas`:'Sin calificaciones'}><span>{ratingCount?'★'.repeat(stars)+'☆'.repeat(5-stars):'☆☆☆☆☆'}</span><small>{ratingCount?`${Number(p.rating_value||0).toFixed(1)} · ${ratingCount}`:'Nuevo'}</small></div>
+      <div className="iv-card-prices"><div className="iv-card-price-detail"><span>{detailLabel}</span><div>{p.compare_at_price_usd&&p.compare_at_price_usd>p.price_usd&&p.price_usd>0&&<del>{money(p.compare_at_price_usd)}</del>}<strong>{priced?(p.has_price_range?`Desde ${money(p.price_usd)}`:money(p.price_usd)):'Consultar'}</strong>{!mobile&&p.price_bs>0&&priced&&<small>{bs(p.price_bs)}</small>}</div></div>{commerce.showWholesalePrice!==false&&<div className="iv-card-price-wholesale"><span>{commerce.wholesaleLabel||'Mayor'}</span><div>{wholesale>0?<strong>{money(wholesale)} <em>c/u</em></strong>:<strong>Consultar</strong>}{wholesaleMin>0&&<small>Desde {wholesaleMin} u.</small>}</div></div>}</div>
+      <div className="iv-card-foot">{out?<span className="muted">Sin disponibilidad</span>:<span><Truck/> {commerce.freeShippingEnabled?'Envío gratis':'Disponible'}</span>}<a href={productHref}>Ver ↗</a></div>
+    </div>
+  </>
+  return <article className={`iv-product-card ${out?'is-out':''}`}>
+    <div className="iv-card-mobile">{cardBody(true)}</div>
+    <div className="iv-card-desktop">{cardBody(false)}</div>
   </article>
 }
 
@@ -339,95 +360,52 @@ function Storefront({slug}:{slug:string}){
     [availability,setAvailability]=useState(()=>urlParams.get('availability')||''),[minPrice,setMinPrice]=useState(()=>urlParams.get('minPrice')||''),[maxPrice,setMaxPrice]=useState(()=>urlParams.get('maxPrice')||''),
     [featuredOnly,setFeaturedOnly]=useState(()=>urlParams.get('featured')==='1'),[promoOnly,setPromoOnly]=useState(()=>urlParams.get('promo')==='1'),[sort,setSort]=useState(()=>urlParams.get('sort')||'featured'),[page,setPage]=useState(1),
     [error,setError]=useState(''),[loading,setLoading]=useState(true),[filtersOpen,setFiltersOpen]=useState(false),[searchFocus,setSearchFocus]=useState(false),
-    [favorites,setFavorites]=useState<StoredProduct[]>([]),[order,setOrder]=useState<OrderItem[]>([]),[recent,setRecent]=useState<StoredProduct[]>([]),[favoritesOpen,setFavoritesOpen]=useState(false),[orderOpen,setOrderOpen]=useState(false),[checkoutOpen,setCheckoutOpen]=useState(false),[featuredHome,setFeaturedHome]=useState<Product[]>([]),[recommendedHome,setRecommendedHome]=useState<Product[]>([]),[offerHome,setOfferHome]=useState<Product[]>([]),[newestHome,setNewestHome]=useState<Product[]>([])
+    [favorites,setFavorites]=useState<StoredProduct[]>([]),[order,setOrder]=useState<OrderItem[]>([]),[favoritesOpen,setFavoritesOpen]=useState(false),[orderOpen,setOrderOpen]=useState(false),[checkoutOpen,setCheckoutOpen]=useState(false)
 
   useEffect(()=>{const t=setTimeout(()=>setSearch(q.trim()),260);return()=>clearTimeout(t)},[q])
   useEffect(()=>setPage(1),[search,category,subcategory,brand,availability,minPrice,maxPrice,featuredOnly,promoOnly,sort])
-  useEffect(()=>{setFavorites(loadFavorites(slug));setOrder(loadOrder(slug));setRecent(loadRecent(slug))},[slug])
-  useEffect(()=>{Promise.all([
-    fetch(`/api/catalog?slug=${encodeURIComponent(slug)}&page=1&limit=8&sort=featured&featured=1`).then(r=>r.ok?r.json():null),
-    fetch(`/api/catalog?slug=${encodeURIComponent(slug)}&page=1&limit=8&sort=featured&recommended=1`).then(r=>r.ok?r.json():null),
-    fetch(`/api/catalog?slug=${encodeURIComponent(slug)}&page=1&limit=8&sort=featured&promo=1`).then(r=>r.ok?r.json():null),
-    fetch(`/api/catalog?slug=${encodeURIComponent(slug)}&page=1&limit=8&sort=newest`).then(r=>r.ok?r.json():null)
-  ]).then(([a,b,c,d])=>{setFeaturedHome(a?.products||[]);setRecommendedHome(b?.products||[]);setOfferHome(c?.products||[]);setNewestHome(d?.products||[])}).catch(()=>{})},[slug])
+  useEffect(()=>{setFavorites(loadFavorites(slug));setOrder(loadOrder(slug))},[slug])
   useEffect(()=>{
     setLoading(true);setError('')
     const p=new URLSearchParams({slug,page:String(page),limit:'24',sort})
-    if(search)p.set('q',search);if(category)p.set('category',category);if(subcategory)p.set('subcategory',subcategory)
-    if(brand)p.set('brand',brand);if(availability)p.set('availability',availability);if(minPrice)p.set('minPrice',minPrice);if(maxPrice)p.set('maxPrice',maxPrice);if(featuredOnly)p.set('featured','1');if(promoOnly)p.set('promo','1')
-    fetch(`/api/catalog?${p}`).then(async r=>{const x=await r.json();if(!r.ok)throw new Error(x.error||'No se pudo abrir el catálogo');return x})
-      .then((x:CatalogResult)=>{setData(x);setTenantManifest(slug);setPageSeo(`${x.tenant.public_name} · Catálogo Online`,x.tenant.hero_subtitle||`Explora productos, precios y disponibilidad de ${x.tenant.public_name}.`,x.tenant.logo_url);track(slug,'catalog_view',{total:x.total})})
-      .catch(e=>setError(String(e.message||e))).finally(()=>setLoading(false))
+    if(search)p.set('q',search);if(category)p.set('category',category);if(subcategory)p.set('subcategory',subcategory);if(brand)p.set('brand',brand);if(availability)p.set('availability',availability);if(minPrice)p.set('minPrice',minPrice);if(maxPrice)p.set('maxPrice',maxPrice);if(featuredOnly)p.set('featured','1');if(promoOnly)p.set('promo','1')
+    fetch(`/api/catalog?${p}`).then(async r=>{const x=await r.json();if(!r.ok)throw new Error(x.error||'No se pudo abrir el catálogo');return x}).then((x:CatalogResult)=>{setData(x);setTenantManifest(slug);setPageSeo(`${x.tenant.public_name} · Catálogo Online`,x.tenant.hero_subtitle||`Explora productos, precios y disponibilidad de ${x.tenant.public_name}.`,x.tenant.logo_url);track(slug,'catalog_view',{total:x.total})}).catch(e=>setError(String(e.message||e))).finally(()=>setLoading(false))
   },[slug,search,category,subcategory,brand,availability,minPrice,maxPrice,featuredOnly,promoOnly,sort,page])
   useEffect(()=>{if(search.length>=2)track(slug,'search',{q:search.slice(0,100)})},[slug,search])
-  useMotionReveal(`${loading}-${data?.total??0}-${page}-${featuredHome.length}-${offerHome.length}`)
+  useMotionReveal(`${loading}-${data?.total??0}-${page}`)
 
-  const tenant=data?.tenant||null,accent=tenant?.accent_color||'#1368ff'
-  const activeFilters=[category,subcategory,brand,tenant?.show_stock_mode==='hidden'?'':availability,minPrice,maxPrice,featuredOnly?'featured':'',promoOnly?'promo':''].filter(Boolean).length
-  const homeSections=Array.isArray(tenant?.home_sections_json)?tenant!.home_sections_json!:['categories','featured','recommended','offers','newest','brands']
-  const showHome=(key:string)=>homeSections.includes(key)
-  const heroTitle=tenant?.hero_title||tenant?.public_name||'Encuentra lo que buscas'
-  const heroSubtitle=tenant?.hero_subtitle||'Explora productos, precios y disponibilidad actualizados directamente desde CUYRA.'
-  const phone=phoneDigits(tenant?.phone||'')
+  const tenant=data?.tenant||null,accent=tenant?.accent_color||'#001A9C',phone=phoneDigits(tenant?.phone||'')
   const navFacets={categories:data?.facets.categories||[],brands:data?.facets.brands||[]}
-  const favoriteIds=useMemo(()=>new Set(favorites.map(x=>x.id)),[favorites])
-  const orderCount=order.reduce((s,x)=>s+x.qty,0)
+  const favoriteIds=useMemo(()=>new Set(favorites.map(x=>x.id)),[favorites]),orderCount=order.reduce((s,x)=>s+x.qty,0)
+  const activeFilters=[category,subcategory,brand,tenant?.show_stock_mode==='hidden'?'':availability,minPrice,maxPrice,featuredOnly?'featured':'',promoOnly?'promo':''].filter(Boolean).length
   const clearAll=()=>{setCategory('');setSubcategory('');setBrand('');setAvailability('');setMinPrice('');setMaxPrice('');setFeaturedOnly(false);setPromoOnly(false);setQ('')}
   const toggleFavoriteProduct=(p:Product)=>{const snap=snapshot(p,slug);setFavorites(old=>{const exists=old.some(x=>x.id===p.source_product_id);const next=exists?old.filter(x=>x.id!==p.source_product_id):[snap,...old].slice(0,60);persist('favorites',slug,next);if(!exists)track(slug,'favorite',{productId:p.source_product_id});return next})}
-  const toggleFavoriteStored=(x:StoredProduct)=>setFavorites(old=>{const exists=old.some(y=>y.id===x.id);const next=exists?old.filter(y=>y.id!==x.id):[x,...old].slice(0,60);persist('favorites',slug,next);return next})
-  const addStoredToOrder=(x:StoredProduct)=>setOrder(old=>{const idx=old.findIndex(y=>y.id===x.id&&y.variantId===x.variantId);let next:OrderItem[];if(idx>=0)next=old.map((y,i)=>i===idx?{...y,qty:y.qty+1}:y);else next=[...old,{...x,qty:1}];persist('order',slug,next);track(slug,'add_to_list',{productId:x.id});return next})
+  const addStoredToOrder=(x:StoredProduct)=>setOrder(old=>{const idx=old.findIndex(y=>y.id===x.id&&y.variantId===x.variantId);const next=idx>=0?old.map((y,i)=>i===idx?{...y,qty:y.qty+1}:y):[...old,{...x,qty:1}];persist('order',slug,next);track(slug,'add_to_list',{productId:x.id});return next})
   const addProductToOrder=(p:Product)=>addStoredToOrder(snapshot(p,slug))
   const changeQty=(id:number,qty:number,variantId?:number|null)=>setOrder(old=>{const next=old.map(x=>x.id===id&&(x.variantId||null)===(variantId||null)?{...x,qty:Math.max(1,qty)}:x);persist('order',slug,next);return next})
   const removeOrder=(id:number,variantId?:number|null)=>setOrder(old=>{const next=old.filter(x=>!(x.id===id&&(x.variantId||null)===(variantId||null)));persist('order',slug,next);return next})
   const removeFavorite=(id:number)=>setFavorites(old=>{const next=old.filter(x=>x.id!==id);persist('favorites',slug,next);return next})
-  const activeChips=[category&&{label:category,clear:()=>{setCategory('');setSubcategory('')}},subcategory&&{label:subcategory,clear:()=>setSubcategory('')},brand&&{label:brand,clear:()=>setBrand('')},availability&&tenant?.show_stock_mode!=='hidden'&&{label:availability==='available'?'Disponibles':'Agotados',clear:()=>setAvailability('')},(minPrice||maxPrice)&&{label:`Precio ${minPrice?`$${minPrice}`:'mín.'} – ${maxPrice?`$${maxPrice}`:'máx.'}`,clear:()=>{setMinPrice('');setMaxPrice('')}},featuredOnly&&{label:'Destacados',clear:()=>setFeaturedOnly(false)},promoOnly&&{label:'Ofertas',clear:()=>setPromoOnly(false)}].filter(Boolean) as {label:string;clear:()=>void}[]
 
-  const filters=<>
-    <div className="filter-group"><label>Categoría</label><select value={category} onChange={(e:any)=>{setCategory(e.target.value);setSubcategory('');if(e.target.value)track(slug,'category_view',{category:e.target.value})}}><option value="">Todas</option>{data?.facets.categories.map(x=><option key={x}>{x}</option>)}</select></div>
-    <div className="filter-group"><label>Subcategoría</label><select value={subcategory} onChange={(e:any)=>setSubcategory(e.target.value)}><option value="">Todas</option>{data?.facets.subcategories.map(x=><option key={x}>{x}</option>)}</select></div>
-    {tenant?.show_brand_filter!==false&&<div className="filter-group"><label>Marca</label><select value={brand} onChange={(e:any)=>setBrand(e.target.value)}><option value="">Todas</option>{data?.facets.brands.map(x=><option key={x}>{x}</option>)}</select></div>}
-    <div className="filter-group price-filter"><label>Rango de precio</label><div className="price-inputs"><label><span>Desde</span><input inputMode="decimal" type="number" min="0" placeholder={data?String(Math.floor(data.facets.priceRange.min||0)):'0'} value={minPrice} onChange={(e:any)=>setMinPrice(e.target.value)}/></label><label><span>Hasta</span><input inputMode="decimal" type="number" min="0" placeholder={data?String(Math.ceil(data.facets.priceRange.max||0)):'100'} value={maxPrice} onChange={(e:any)=>setMaxPrice(e.target.value)}/></label></div></div>
-    <div className="filter-group filter-switch-row"><span><b>Destacados</b><small>Mostrar selección principal</small></span><button type="button" className={featuredOnly?'switch active':'switch'} aria-pressed={featuredOnly} onClick={()=>setFeaturedOnly(x=>!x)}><i/></button></div>
-    <div className="filter-group filter-switch-row"><span><b>Ofertas</b><small>Productos con promoción activa</small></span><button type="button" className={promoOnly?'switch active':'switch'} aria-pressed={promoOnly} onClick={()=>setPromoOnly(x=>!x)}><i/></button></div>
-    {tenant?.show_stock_mode!=='hidden'&&<div className="filter-group availability-desktop-filter"><label>Disponibilidad</label><select value={availability} onChange={(e:any)=>setAvailability(e.target.value)}><option value="">Todos</option><option value="available">Disponibles</option><option value="out">Agotados</option></select></div>}
-    {tenant?.show_stock_mode!=='hidden'&&<div className="filter-group filter-switch-row availability-mobile-filter"><span><b>Solo disponibles</b><small>Ocultar productos agotados</small></span><button type="button" className={availability==='available'?'switch active':'switch'} aria-pressed={availability==='available'} onClick={()=>setAvailability(x=>x==='available'?'':'available')}><i/></button></div>}
-    <button className="clear-filters" onClick={clearAll}>Limpiar filtros</button>
-  </>
+  const filters=<><div className="filter-group"><label>Categoría</label><select value={category} onChange={(e:any)=>{setCategory(e.target.value);setSubcategory('')}}><option value="">Todas</option>{data?.facets.categories.map(x=><option key={x}>{x}</option>)}</select></div><div className="filter-group"><label>Marca</label><select value={brand} onChange={(e:any)=>setBrand(e.target.value)}><option value="">Todas</option>{data?.facets.brands.map(x=><option key={x}>{x}</option>)}</select></div><div className="filter-group price-filter"><label>Rango de precio</label><div className="price-inputs"><label><span>Desde</span><input type="number" min="0" value={minPrice} onChange={(e:any)=>setMinPrice(e.target.value)}/></label><label><span>Hasta</span><input type="number" min="0" value={maxPrice} onChange={(e:any)=>setMaxPrice(e.target.value)}/></label></div></div><div className="filter-group filter-switch-row"><span><b>Ofertas</b><small>Productos con promoción</small></span><button type="button" className={promoOnly?'switch active':'switch'} onClick={()=>setPromoOnly(x=>!x)}><i/></button></div>{tenant?.show_stock_mode!=='hidden'&&<div className="filter-group filter-switch-row"><span><b>Solo disponibles</b><small>Ocultar agotados</small></span><button type="button" className={availability==='available'?'switch active':'switch'} onClick={()=>setAvailability(x=>x==='available'?'':'available')}><i/></button></div>}<button className="clear-filters" onClick={clearAll}>Limpiar filtros</button></>
 
-  return <div className={`app theme-${effectiveTheme(tenant)}`} style={{'--accent':accent,'--tenant-accent':accent} as React.CSSProperties}>
+  return <div className="app theme-commerce iv-store" style={{'--accent':accent,'--tenant-accent':accent,'--iv-primary':accent,'--iv-primary-dark':accent} as React.CSSProperties}>
     <Header tenant={tenant} facets={navFacets} favoriteCount={favorites.length} orderCount={orderCount} onFavorites={()=>setFavoritesOpen(true)} onOrder={()=>setOrderOpen(true)}/>
     <main>
-      {tenant&&<StoreHeroCarousel tenant={tenant} total={data?.total??0}/>}
-      {tenant?.show_brand_filter!==false&&showHome('brands')&&data?.facets.brands.length?<BrandCarousel tenant={tenant} brands={data.facets.brands} active={brand} onSelect={x=>{setBrand(x);setCategory('');setPage(1);setTimeout(()=>document.getElementById('productos')?.scrollIntoView({behavior:'smooth'}),80)}}/>:null}
-
-      {tenant&&showHome('featured')&&featuredHome.length>0&&<section className="home-commerce-section"><div className="section-heading-row"><div><span className="section-kicker">SELECCIÓN PRINCIPAL</span><h2>Destacados</h2></div><button onClick={()=>{setFeaturedOnly(true);setPromoOnly(false);document.getElementById('productos')?.scrollIntoView({behavior:'smooth'})}}>Ver todos <ArrowRight/></button></div><div className="home-product-rail">{featuredHome.map(p=><ProductCard key={`featured-${p.source_group_id||p.source_product_id}`} tenant={tenant} product={p} isFavorite={favoriteIds.has(p.source_product_id)} onFavorite={toggleFavoriteProduct} onAdd={addProductToOrder}/>)}</div></section>}
-      {tenant&&showHome('recommended')&&recommendedHome.length>0&&<section className="home-commerce-section recommended"><div className="section-heading-row"><div><span className="section-kicker">PARA TI</span><h2>Recomendados</h2></div><span className="section-soft-note">Selección del comercio</span></div><div className="home-product-rail">{recommendedHome.map(p=><ProductCard key={`rec-${p.source_group_id||p.source_product_id}`} tenant={tenant} product={p} isFavorite={favoriteIds.has(p.source_product_id)} onFavorite={toggleFavoriteProduct} onAdd={addProductToOrder}/>)}</div></section>}
-      {tenant&&showHome('offers')&&offerHome.length>0&&<section className="home-commerce-section offers" id="ofertas"><div className="section-heading-row"><div><span className="section-kicker">PRECIO ESPECIAL</span><h2>Ofertas</h2></div><button onClick={()=>{setPromoOnly(true);setFeaturedOnly(false);document.getElementById('productos')?.scrollIntoView({behavior:'smooth'})}}>Ver ofertas <ArrowRight/></button></div><div className="home-product-rail">{offerHome.map(p=><ProductCard key={`offer-${p.source_group_id||p.source_product_id}`} tenant={tenant} product={p} isFavorite={favoriteIds.has(p.source_product_id)} onFavorite={toggleFavoriteProduct} onAdd={addProductToOrder}/>)}</div></section>}
-      {tenant&&showHome('newest')&&newestHome.length>0&&<section className="home-commerce-section newest"><div className="section-heading-row"><div><span className="section-kicker">NOVEDADES</span><h2>Recién llegados</h2></div><button onClick={()=>{setSort('newest');document.getElementById('productos')?.scrollIntoView({behavior:'smooth'})}}>Ver catálogo <ArrowRight/></button></div><div className="home-product-rail">{newestHome.map(p=><ProductCard key={`new-${p.source_group_id||p.source_product_id}`} tenant={tenant} product={p} isFavorite={favoriteIds.has(p.source_product_id)} onFavorite={toggleFavoriteProduct} onAdd={addProductToOrder}/>)}</div></section>}
-
-      {tenant?.show_category_nav!==false&&showHome('categories')&&data?.facets.categories.length?<CategoryRail categories={data.facets.categories} active={category} onSelect={x=>{setCategory(x);setSubcategory('');if(x)track(slug,'category_view',{category:x,source:'category_rail'});setTimeout(()=>document.getElementById('productos')?.scrollIntoView({behavior:'smooth'}),80)}}/>:null}
-
-      <section className="products-section" id="productos">
-        <div className="products-title"><div><span className="section-kicker">CATÁLOGO</span><h2>{category||brand||'Todos los productos'}</h2></div><span className="product-count">{data?.total??0} resultados</span></div>
-        <section className="catalog-toolbar" id="catalog-search">
-          <div className={`search ${searchFocus?'focused':''}`}><Search size={19}/><input value={q} onFocus={()=>setSearchFocus(true)} onBlur={()=>setTimeout(()=>setSearchFocus(false),160)} onChange={(e:any)=>setQ(e.target.value)} placeholder="Buscar producto, SKU, marca o modelo..."/>{q&&<button className="search-clear" onClick={()=>setQ('')} aria-label="Limpiar búsqueda"><X/></button>}<SearchSuggestions slug={slug} q={q} open={searchFocus} onPick={()=>setSearchFocus(false)}/></div>
-          <button className="mobile-filter catalog-filter-trigger" onClick={()=>setFiltersOpen(true)}><SlidersHorizontal size={17}/> Filtros {activeFilters>0&&<b>{activeFilters}</b>}</button>
-          <select className="sort" value={sort} onChange={(e:any)=>setSort(e.target.value)}><option value="featured">Destacados</option><option value="newest">Más recientes</option><option value="price_asc">Precio: menor a mayor</option><option value="price_desc">Precio: mayor a menor</option><option value="rating">Mejor calificados</option><option value="name">Nombre A–Z</option></select>
-        </section>
-        {activeChips.length>0&&<div className="active-filters"><span>Filtros activos:</span>{activeChips.map(x=><button key={x.label} onClick={x.clear}>{x.label}<X/></button>)}<button className="clear-inline" onClick={clearAll}>Limpiar todo</button></div>}
-
-        <div className="catalog-shell"><section className="results"><div className="results-head"><span>{data?.total??0} productos</span>{activeFilters>0&&<small>{activeFilters} filtro(s) activo(s)</small>}</div>{loading?<ProductSkeleton/>:error?<div className="state error"><Info/><strong>{typeof navigator!=='undefined'&&!navigator.onLine?'Sin conexión':'No pudimos cargar el catálogo'}</strong><span>{typeof navigator!=='undefined'&&!navigator.onLine?'Revisa tu conexión a internet y vuelve a intentar.':error}</span><button onClick={()=>location.reload()}>Reintentar</button></div>:data?.products.length===0?<div className="state"><PackageSearch size={38}/><strong>No encontramos productos</strong><span>Prueba con otros filtros o términos de búsqueda.</span><button onClick={clearAll}>Ver todo el catálogo</button></div>:<div className="grid">{data?.products.map(p=><ProductCard key={`${p.source_group_id||'p'}-${p.source_product_id}`} tenant={data.tenant} product={p} isFavorite={favoriteIds.has(p.source_product_id)} onFavorite={toggleFavoriteProduct} onAdd={addProductToOrder}/>)}</div>}{data&&data.pages>1&&<div className="pager"><button disabled={page<=1} onClick={()=>setPage(x=>Math.max(1,x-1))}><ChevronLeft/> Anterior</button><span>Página {page} de {data.pages}</span><button disabled={page>=data.pages} onClick={()=>setPage(x=>Math.min(data.pages,x+1))}>Siguiente <ChevronRight/></button></div>}</section></div>
+      {tenant&&<StoreHeroCarousel tenant={tenant} total={data?.total??0} featured={data?.products.find(p=>p.featured)||data?.products[0]||null}/>} 
+      {tenant?.show_brand_filter!==false&&data?.facets.brands.length?<BrandCarousel tenant={tenant} brands={data.facets.brands} active={brand} onSelect={x=>{setBrand(x);setPage(1);setTimeout(()=>document.getElementById('productos')?.scrollIntoView({behavior:'smooth'}),80)}}/>:null}
+      <section id="productos" className="iv-catalog-section">
+        <div className="iv-catalog-heading"><div><span>Catálogo</span><div className="iv-catalog-title-row"><h2>{category||brand||(search?'Resultados de búsqueda':'Encuentra tu próximo producto')}</h2><b>{data?.total??0} {(data?.total??0)===1?'producto':'productos'}</b></div><p>Explora novedades y consulta precios por unidad o al mayor.</p></div><div className={`iv-catalog-search ${searchFocus?'focused':''}`}><Search/><input value={q} onFocus={()=>setSearchFocus(true)} onBlur={()=>setTimeout(()=>setSearchFocus(false),160)} onChange={(e:any)=>setQ(e.target.value)} placeholder="Buscar por nombre o marca"/><SearchSuggestions slug={slug} q={q} open={searchFocus} onPick={()=>setSearchFocus(false)}/></div></div>
+        {tenant?.show_category_nav!==false&&data?.facets.categories.length?<CategoryRail categories={data.facets.categories} active={category} onSelect={x=>{setCategory(x);setSubcategory('');setPage(1)}}/>:null}
+        {loading?<ProductSkeleton/>:error?<div className="iv-store-empty"><Info/><h3>No pudimos cargar el catálogo</h3><p>{error}</p><button onClick={()=>location.reload()}>Reintentar</button></div>:data?.products.length===0?<div className="iv-store-empty"><Sparkles/><h3>No encontramos esos productos.</h3><p>Prueba otra búsqueda o cambia de categoría. También podemos ayudarte por WhatsApp.</p>{phone&&<a href={openWhatsApp(phone,`Hola ${tenant?.public_name||''}, quiero consultar un producto.`)} target="_blank" rel="noreferrer">Consultar producto <ArrowRight/></a>}</div>:<div className="iv-product-grid">{data?.products.map((p,i)=><div className="iv-product-card-wrap" style={{animationDelay:`${Math.min(i,7)*55}ms`}} key={`${p.source_group_id||'p'}-${p.source_product_id}`}><ProductCard tenant={data.tenant} product={p} isFavorite={favoriteIds.has(p.source_product_id)} onFavorite={toggleFavoriteProduct} onAdd={addProductToOrder}/></div>)}</div>}
+        {data&&data.pages>1&&<div className="iv-pager"><button disabled={page<=1} onClick={()=>setPage(x=>Math.max(1,x-1))}><ChevronLeft/> Anterior</button><span>Página {page} de {data.pages}</span><button disabled={page>=data.pages} onClick={()=>setPage(x=>Math.min(data.pages,x+1))}>Siguiente <ChevronRight/></button></div>}
       </section>
-      {tenant&&<RecentStrip tenant={tenant} items={recent} onFavorite={toggleFavoriteStored} onAdd={addStoredToOrder} favoriteIds={favoriteIds}/>} 
-      {tenant&&<TrustGrid tenant={tenant}/>}
+      {tenant&&<StoreFaq tenant={tenant}/>} {tenant&&<StoreSupportCta tenant={tenant}/>} {tenant&&<StoreBenefits tenant={tenant}/>} 
     </main>
-    {filtersOpen&&<div className="drawer-backdrop" onClick={()=>setFiltersOpen(false)}><div className="filter-drawer" onClick={(e:any)=>e.stopPropagation()}><div className="drawer-head"><div><span>CATÁLOGO</span><strong>Filtros</strong></div><button onClick={()=>setFiltersOpen(false)}><X/></button></div><div className="filter-sheet-body">{filters}</div><div className="filter-sheet-footer"><button className="sheet-clear" onClick={clearAll}>Limpiar</button><button className="sheet-apply" onClick={()=>setFiltersOpen(false)}>Ver {data?.total??0} productos</button></div></div></div>}
     {tenant&&favoritesOpen&&<FavoritesDrawer tenant={tenant} items={favorites} onClose={()=>setFavoritesOpen(false)} onRemove={removeFavorite} onAdd={addStoredToOrder}/>} 
     {tenant&&orderOpen&&<OrderDrawer tenant={tenant} items={order} onClose={()=>setOrderOpen(false)} onChange={changeQty} onRemove={removeOrder} onCheckout={()=>{setOrderOpen(false);setCheckoutOpen(true)}}/>} 
     {tenant&&checkoutOpen&&<CheckoutConfirmation tenant={tenant} items={order} onClose={()=>{setCheckoutOpen(false);setOrderOpen(true)}} onDone={()=>{persist('order',slug,[]);setOrder([]);setCheckoutOpen(false)}}/>} 
-    {tenant&&orderCount>0&&<button className="floating-order" onClick={()=>setOrderOpen(true)}><ShoppingBag/><span>Carrito</span><b>{orderCount}</b></button>}
     {phone&&<a className="floating-wa" href={openWhatsApp(phone,`Hola ${tenant?.public_name||''}, vengo del catálogo y quisiera recibir atención.`)} target="_blank" rel="noreferrer" aria-label="Contactar por WhatsApp"><WhatsAppIcon size={27}/></a>}
-    {tenant&&<nav className="mobile-bottom-nav" aria-label="Navegación móvil"><button className="active" onClick={()=>document.getElementById('catalog-home')?.scrollIntoView({behavior:'smooth'})}><Store/><span>Inicio</span></button><button onClick={()=>document.querySelector('.category-rail')?.scrollIntoView({behavior:'smooth'})}><Grid3X3/><span>Categorías</span></button><button onClick={()=>{document.getElementById('catalog-search')?.scrollIntoView({behavior:'smooth'});setTimeout(()=>document.querySelector<HTMLInputElement>('#catalog-search input')?.focus(),350)}}><Search/><span>Buscar</span></button><button onClick={()=>{setPromoOnly(true);setFeaturedOnly(false);document.getElementById('productos')?.scrollIntoView({behavior:'smooth'})}}><Tag/><span>Ofertas</span></button><button className="nav-order" onClick={()=>setOrderOpen(true)}><ShoppingBag/><span>Carrito</span>{orderCount>0&&<b>{orderCount}</b>}</button></nav>}
+    {tenant&&<nav className="iv-mobile-nav" aria-label="Navegación móvil"><a className="active" href="#inicio"><Store/><span>Inicio</span></a><a href="#productos"><Grid3X3/><span>Catálogo</span></a><button onClick={()=>{setPromoOnly(true);setFeaturedOnly(false);document.getElementById('productos')?.scrollIntoView({behavior:'smooth'})}}><Tag/><span>Ofertas</span></button><button onClick={()=>setOrderOpen(true)}><ShoppingBag/><span>Carrito</span>{orderCount>0&&<b>{orderCount}</b>}</button><a href={phone?openWhatsApp(phone,`Hola ${tenant.public_name}, necesito ayuda.`):'#preguntas'} target={phone?'_blank':undefined} rel={phone?'noreferrer':undefined}><Headphones/><span>Ayuda</span></a></nav>}
     <Footer tenant={tenant}/>
   </div>
 }
@@ -510,11 +488,12 @@ function ProductDetail({slug,productId}:{slug:string;productId:number}){
   </div>
 }
 
-function ProductSkeleton(){return <div className="grid">{Array.from({length:8}).map((_,i)=><div className="skeleton-card" key={i}><div/><span/><span/><b/></div>)}</div>}
+function ProductSkeleton(){return <div className="iv-product-grid iv-skeleton-grid">{Array.from({length:8}).map((_,i)=><div className="iv-skeleton-card" key={i}><div className="iv-skeleton-media"/><div className="iv-skeleton-body"><span/><b/><b/><i/><i/></div></div>)}</div>}
 
 function Footer({tenant}:{tenant:Tenant|null}){
-  const phone=phoneDigits(tenant?.phone||'')
-  return <footer className="catalog-footer"><div className="footer-grid"><div className="footer-company">{tenant?.logo_url?<img src={tenant.logo_url} alt={tenant.public_name}/>:tenant?<div className="footer-mark">{tenant.public_name.slice(0,1).toUpperCase()}</div>:<CuyraMark dark/>}<h3>{tenant?.public_name||CUYRA_LABEL}</h3><p>{tenant?`Catálogo online de ${tenant.public_name}. Información comercial conectada con CUYRA.`:CUYRA_TAGLINE}</p>{tenant?.location_text&&<span><MapPin/> {tenant.location_text}</span>}</div><div className="footer-col"><h4>Explorar</h4>{tenant?<><a href={`${collectionUrl(tenant.slug)}#productos`}>Productos</a><a href={collectionUrl(tenant.slug,{sort:'newest'})}>Novedades</a><a href={`${collectionUrl(tenant.slug)}#catalog-search`}>Buscar</a></>:<><a href={cuyraLeadUrl('CUYRA Catalog')} target="_blank" rel="noreferrer">Solicitar catálogo</a><a href={cuyraLeadUrl('software empresarial')} target="_blank" rel="noreferrer">Soluciones CUYRA</a></>}</div><div className="footer-col"><h4>{tenant?'Ayuda':'Contacto'}</h4>{phone&&<a href={openWhatsApp(phone,`Hola ${tenant?.public_name}, vengo del catálogo y necesito ayuda.`)} target="_blank" rel="noreferrer">WhatsApp</a>}{tenant?.instagram_url&&<a href={tenant.instagram_url} target="_blank" rel="noreferrer">Instagram</a>}{tenant?.website&&<a href={tenant.website} target="_blank" rel="noreferrer">Sitio web</a>}{!tenant&&<a href={cuyraLeadUrl('CUYRA')} target="_blank" rel="noreferrer">+58 412-547-71-19</a>}</div><div className="footer-col footer-cuyra"><h4>Tecnología</h4><CuyraMark compact dark/><p>Plataforma empresarial para conectar operación, catálogo y experiencia comercial.</p><a className="cuyra-soft-cta" href={cuyraLeadUrl('catálogo conectado')} target="_blank" rel="noreferrer">¿Quieres un catálogo como este? <ArrowRight/></a></div></div><div className="footer-bottom"><span>© 2026 {tenant?.public_name||'CUYRA'}. Todos los derechos reservados.</span><span>Powered by <a href={cuyraLeadUrl('CUYRA')} target="_blank" rel="noreferrer"><b>CUYRA</b></a> · Developed by Oliver Lugo</span></div></footer>
+  if(!tenant)return <footer className="catalog-footer"><div className="footer-bottom"><span>© 2026 CUYRA.</span><span>Powered by <b>CUYRA</b></span></div></footer>
+  const commerce=tenant.commerce_settings_json||{},phone=phoneDigits(tenant.phone||''),payments=(commerce.paymentMethods||[]).filter(x=>x.enabled!==false)
+  return <footer className="iv-footer" id="contacto"><div className="iv-footer-grid"><div className="iv-footer-brand">{tenant.logo_url?<img src={tenant.logo_url} alt={tenant.public_name}/>:<div className="iv-brand-fallback">{tenant.public_name.slice(0,1).toUpperCase()}</div>}<p>Productos, precios claros y atención directa para que compres con confianza.</p>{tenant.location_text&&<span>{tenant.location_text}</span>}</div><div className="iv-footer-col"><h3>Ayuda</h3><a href="#preguntas">Preguntas frecuentes</a><a href="#beneficios">Envíos y entregas</a><a href="#productos">Catálogo</a><a href={`${collectionUrl(tenant.slug,{promo:'1'})}#productos`}>Ofertas</a></div><div className="iv-footer-col"><h3>Acerca de {tenant.public_name}</h3><p>Catálogo online conectado a CUYRA con productos, precios y disponibilidad actualizados desde la operación de la tienda.</p>{tenant.website&&<a href={tenant.website} target="_blank" rel="noreferrer">Sitio web ↗</a>}{tenant.instagram_url&&<a href={tenant.instagram_url} target="_blank" rel="noreferrer">Instagram ↗</a>}</div><div className="iv-footer-col"><h3>¿Necesitas ayuda?</h3><p>Te ayudamos con disponibilidad, pagos y seguimiento de tu pedido.</p>{phone&&<a className="iv-footer-wa" href={openWhatsApp(phone,`Hola ${tenant.public_name}, necesito ayuda con mi pedido.`)} target="_blank" rel="noreferrer">Escríbenos por WhatsApp</a>}<small>También atendemos por WhatsApp para coordinar tu compra.</small></div></div><section className="iv-payment-strip"><div><h3>Métodos de pago</h3><p>Se confirman contigo al preparar el pedido.</p></div>{payments.length?<div className="iv-payment-list">{payments.map(x=><span key={x.id}><i>{x.label.trim().charAt(0).toUpperCase()}</i>{x.label}</span>)}</div>:<small>Consulta los métodos disponibles por WhatsApp.</small>}</section><div className="iv-footer-bottom"><span>© {new Date().getFullYear()} {tenant.public_name}. Todos los derechos reservados.</span><span>Powered by <b>CUYRA</b></span></div></footer>
 }
 
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/sw.js').catch(()=>{})})}
