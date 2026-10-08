@@ -1,20 +1,23 @@
-# CUYRA Catalog Cloud V4.2.0 · GALLERY01
+# CUYRA Catalog V4.1.0 HF03 · MOBILEUX01 + WAFIX01
 
-Actualización acumulativa sobre V4.1.0 HF06 MEDIAFIT02.
+Hotfix acumulativo sobre HF02 CARDFIX01.
 
-## Nuevo
-- `gallery_urls` aditivo en productos cloud.
-- Backfill de `image_url` a galería para productos existentes.
-- Sincronización de hasta 5 imágenes desde CUYRA Principal.
-- La imagen principal sigue siendo `image_url` para compatibilidad y cards.
-- PDP con galería, miniaturas, navegación, lightbox/zoom y soporte móvil.
-- API pública y endpoints Sofía incluyen la galería sin exponer datos privados.
+## Corrige
+- WhatsApp en teléfonos venezolanos guardados como `04XX...`: los convierte a formato internacional `58...` antes de abrir `wa.me`.
+- Vista de producto móvil dedicada, sin contenedores rígidos de escritorio.
+- Soporte de `safe-area` para iPhone.
+- Header móvil más compacto.
+- Menús, filtros, favoritos y lista como bottom sheets.
+- Dock inferior móvil de compra con `Lista` + `Pedir por WhatsApp`.
+- Oculta los botones flotantes que tapaban contenido dentro de la ficha móvil.
+- Cards del catálogo a una columna en teléfonos para evitar diseño comprimido y variantes torcidas.
+- Responsive de precio, SKU, variantes, compra asistida, acordeones y relacionados.
 
-## Deployment
-1. Aplicar `supabase/migrations/v4_2_product_gallery.sql`.
-2. Desplegar V4.2.0 GALLERY01.
-3. Confirmar `/api/health`.
-4. Sincronizar un producto de prueba desde Principal V3.10.0 GLOBAL01.
-5. Validar un producto antiguo de una foto y uno nuevo de 2–5 fotos.
+## GitHub
+Este hotfix NO modifica `api/`, `server/` ni `supabase/`.
+Solo reemplaza:
+1. `src/main.tsx`
+2. `src/styles.css`
+3. `index.html`
 
-No elimina productos, tenants ni imágenes actuales.
+El conteo de funciones Serverless permanece en 12.
