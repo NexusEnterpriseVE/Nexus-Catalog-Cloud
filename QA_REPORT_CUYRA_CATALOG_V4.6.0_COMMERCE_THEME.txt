@@ -1,26 +1,34 @@
-CUYRA CATALOG V4.2.0 GALLERY01 — QA REPORT
-UTC 2026-08-25 12:47:58
+QA REPORT · CUYRA Catalog V4.4.0
+MOBILECOMMERCE02 + PRODUCTUX01 + RATING01 + WACONFIRM01
+Base: V4.3.0 MOBILECOMMERCE01
+Fecha: 2026-09-01
 
---- qa_static.py
-CLOUD_QA_STATIC_OK
-V4_GROUP_VARIANTS_OK
-SOFIA_SEPARATE_READ_TOKEN_OK
-CUYRA_UI02_OK
-COMMERCEUX01_OK
-CATALOGANALYTICS01_OK
-PWA01_OK
-WHITE_LABEL_TENANT_OK
-PUBLIC_PRIVATE_VISIBILITY_SPLIT_OK
-RLS_DIRECT_ACCESS_GUARD_OK
+RESULTADO ESTATICO: PASS
 
---- qa_v420_gallery01.py
-QA CUYRA CATALOG V4.2.0 GALLERY01: OK
- - gallery_urls aditivo y backfill de image_url
- - sincronización máx. 5 imágenes y portada
- - storefront con miniaturas/swipe conceptual y lightbox/zoom
- - API pública/Sofía conservan galería
+QA CUYRA CATALOG V4.4.0: PASS
+ + package 4.4.0
+ + migración aditiva
+ + 12 Serverless preservadas
+ + checkout no mueve inventario
+ + compatibilidad con Principal anterior preservada
+ + sin módulo Combos
+ + sin ratings falsos hardcodeados
+ + admin JS syntax OK
+TS_SYNTAX PASS files=18 errors=0
+ADMIN_JS_SYNTAX: PASS
 
---- node syntax
-NODE_STATIC_SYNTAX_OK
+Validaciones adicionales:
+- Sin módulo Combos en APIs, storefront, admin ni migración V4.4.
+- Migración V4.4 aditiva: sin DROP/DELETE/TRUNCATE/renames destructivos.
+- Serverless Functions preservadas: 12 archivos api/*.ts.
+- Checkout no modifica catalog_products, stock, Caja ni ventas ERP.
+- Checkout revalida producto/variante, precio actual publicado y stock antes de crear solicitud WhatsApp.
+- Reviews públicas: solo approved=true. Reviews nuevas: approved=false.
+- No se detectaron ratings comerciales hardcodeados.
+- Sincronización de Principales anteriores no pisa merchandising Cloud si no envían los nuevos campos.
+- Continuidad estática de V4.3/V4.2/V4 central: galería, variantes, favoritos, recientes, filtros, PWA, Sofía y sync presentes.
 
-LIMITACION: npm install agotó el timeout de red en este entorno, por lo que el build Vite real debe validarse en Vercel/entorno con dependencias disponibles.
+LIMITACION DEL ENTORNO:
+- npm install agotó el tiempo de espera de acceso al registro npm, por lo que aquí no se ejecutó vite build completo.
+- El parse/transpile TS/TSX de 18 archivos pasó sin errores de sintaxis.
+- Primer despliegue obligatorio: Vercel Preview antes de Production.
