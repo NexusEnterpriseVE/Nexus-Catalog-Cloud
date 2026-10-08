@@ -1,3 +1,9 @@
+# Nexus / CUYRA Catalog Cloud v5.0
+
+**Nueva entrega integral:** consulta [README_V5.md](README_V5.md) para cambios, despliegue y validaciones.
+
+---
+
 # CUYRA Catalog Cloud v4.6.1 · VARGASUX01
 
 > **Tema público actual:** port completo de la experiencia `importadora-vargas-main` sobre el motor CUYRA. Se trasladaron composición, jerarquía visual, tarjetas, responsive, navegación y animaciones del tema de referencia sin sustituir la arquitectura multi-tenant de CUYRA.
