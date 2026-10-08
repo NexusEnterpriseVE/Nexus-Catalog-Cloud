@@ -63,8 +63,8 @@
     .banner-card h3{margin:0 0 8px;font-size:13px;color:#bfdbfe}.banner-preview{min-height:150px;border-radius:15px;border:1px solid #263650;overflow:hidden;margin:10px 0 14px;background:linear-gradient(135deg,#07101f,#15243d);background-size:cover;background-position:center;position:relative}.banner-preview:after{content:"Vista previa";position:absolute;right:9px;top:9px;padding:5px 8px;border-radius:999px;background:#07101fcc;color:#dbeafe;font-size:10px;font-weight:800}.banner-preview-copy{position:absolute;left:16px;right:16px;bottom:14px;text-shadow:0 2px 12px #000}.banner-preview-copy b{display:block;font-size:18px}.banner-preview-copy span{display:block;font-size:12px;color:#d6e0ee;margin-top:3px}.banner-help{font-size:11px;color:#7f91aa;margin-top:-4px}.banner-tools{display:flex;gap:8px}.banner-tools button{height:36px;font-size:12px}.banner-tools .clear-banner{background:#27364d}
     .checks{display:flex;gap:16px;flex-wrap:wrap;margin:12px 0}.checks label{display:flex;align-items:center;gap:7px;margin:0}.checks input{height:auto}
     .review-list{display:grid;gap:10px;margin-top:12px}.review-item{padding:12px;border:1px solid #263650;border-radius:12px;background:#0b1220}.review-item header{display:flex;justify-content:space-between;gap:10px}.review-item p{font-size:13px;margin:8px 0}.review-actions{display:flex;gap:8px}.review-actions button{height:36px;font-size:12px}.review-actions .reject{background:#7f1d1d}
-    .home-checks{padding:10px 0}.merchandising-list{max-height:620px;overflow:auto;padding-right:4px}.merchandising-item>button{height:38px;margin-top:8px}.merchandising-item .grid2 input{height:40px}.merchandising-item .checks{margin:8px 0}
-    @media(max-width:640px){.grid2{grid-template-columns:1fr}}
+    .home-checks{padding:10px 0}.merchandising-list{max-height:620px;overflow:auto;padding-right:4px}.catalog-tools{display:grid;grid-template-columns:2fr 1fr;gap:10px;margin:14px 0}.catalog-tools input,.catalog-tools select{height:44px}.merchandising-item{transition:.18s ease}.merchandising-item:hover{border-color:#3b82f6;transform:translateY(-1px)}.merchandising-item>button{height:38px;margin-top:8px}.merchandising-item .grid2 input{height:40px}.merchandising-item .checks{margin:8px 0}
+    @media(max-width:640px){.grid2{grid-template-columns:1fr}.catalog-tools{grid-template-columns:1fr}}
   </style>
 </head>
 <body>
@@ -147,7 +147,7 @@ Molten|https://..."></textarea></label>
     <h2>Ofertas y recomendados</h2>
     <p>Configura la presentación comercial del catálogo sin alterar el precio base de CUYRA: precio anterior visual, etiqueta promocional y selección recomendada.</p>
     <button id="loadMerchandising" class="ghost" type="button">Cargar productos comerciales</button>
-    <div id="merchandising" class="review-list merchandising-list"></div>
+    <div class="catalog-tools"><input id="merchSearch" placeholder="Buscar producto por nombre, SKU o marca..."> <select id="merchFilter"><option value="all">Todos</option><option value="recommended">Recomendados</option><option value="offer">Con oferta</option></select></div><div id="merchStats" class="banner-help"></div><div id="merchandising" class="review-list merchandising-list"></div>
   </div>
 
   <div class="section">
