@@ -1,4 +1,4 @@
-# Nexus / CUYRA Catalog Cloud V6.1 — Premium Light Commerce
+# Nexus / CUYRA Catalog Cloud V6.3 — Premium Light & Mobile Commerce
 
 Repositorio completo para GitHub y Vercel. **La raíz de este ZIP es la raíz del repositorio** (no subas una carpeta superior). Mantiene catálogo multiempresa, Supabase, rutas, sistema de pedidos y administrador existentes.
 
@@ -20,11 +20,11 @@ Repositorio completo para GitHub y Vercel. **La raíz de este ZIP es la raíz de
 - Admin claro con productos al inicio, búsqueda por nombre/SKU/marca, filtros, tabla en PC, fichas compactas móviles, paginación y editor comercial. Filtros plegables en teléfono.
 - CSS público `src/v6-complete.css`, CSS administrativo `public/nexus-admin-v6-complete.css` y versión de caché nueva en el service worker.
 
-## Pruebas y límites
+## Calidad y despliegue en Vercel
 
 - Verificadas sintaxis TS/TSX, JS y estructura CSS; probado el precio por cantidad (1, 3, 4 y 5 unidades) y la UI del administrador con 850 artículos simulados en escritorio y teléfono.
 - La prueba visual usó productos simulados, no registros reales de tu tienda.
-- **No se pudo ejecutar `npm run build` localmente porque el registro npm no respondió (`EAI_AGAIN`)**. Por ese motivo tampoco se ha probado la conexión real a Supabase ni un deploy de Vercel. No se debe considerar verificado para producción hasta superar estas pruebas en Vercel Preview.
+- **La compilación la realiza Vercel** después del commit. El entorno de edición no permite afirmar que Vercel compiló o que Supabase real fue probado. Si la build en Vercel resulta correcta, revisa también el catálogo y la administración con tus registros reales.
 
 ## Comandos
 
@@ -32,6 +32,16 @@ Repositorio completo para GitHub y Vercel. **La raíz de este ZIP es la raíz de
 npm install
 npm run build
 npm run dev
+npm run qa:wholesale
 ```
 
-Nota: los archivos CSS anteriores siguen presentes para compatibilidad con las pantallas heredadas; las reglas V6.1 son las últimas aplicadas y prevalecen. No cambies las claves ni las APIs al actualizar solo el frontend.
+Nota: los archivos CSS anteriores siguen presentes para compatibilidad con las pantallas heredadas; las reglas V6.3 son las últimas aplicadas y prevalecen. No cambies las claves ni las APIs al actualizar solo el frontend.
+
+## Reconciliación con ZIP estable
+
+Se comparó el proyecto con `Nexus-Catalog-Cloud-main (1).zip`. Se conservan las carpetas operativas `api`, `server`, `src`, `public`, `supabase` y se reincorpora `scripts/qa` con las pruebas originales. El contenido de la raíz se mantiene limpio; las versiones y archivos de respaldo duplicados del ZIP estable no son necesarios para que Vercel ejecute el proyecto.
+
+
+## Actualización V6.3
+
+Ver `README_V6.3.md`: mejoras de legibilidad/compactación móvil y recuperación del precio mayorista **desde X unidades** por variante. Los datos mayoristas deben existir y estar habilitados en Vitrina Comercial.
