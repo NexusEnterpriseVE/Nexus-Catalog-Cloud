@@ -1,0 +1,34 @@
+/* CUYRA Admin V6.3: usable, compact touch-first administration. */
+.v5-shell,.v5-workspace,.v5-panel,.v5-mobile-row{min-width:0}
+@media(max-width:790px){
+  html,body{max-width:100%;overflow-x:clip}
+  .v5-sidebar{padding:6px 9px!important}
+  .v5-tabs{gap:4px!important}
+  .v5-tabs button{height:40px!important;min-height:40px!important;padding:0 10px!important;font-size:11px!important;gap:6px!important}
+  .v5-workspace{padding:0 11px 45px!important}
+  .v51-topbar{margin:0 -11px 12px!important;padding:9px 11px!important;min-height:47px!important;gap:7px!important}
+  .v51-crumb{font-size:11px!important;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .v5-admin-header{margin-bottom:12px!important}
+  .v5-admin-header h1{font-size:22px!important;line-height:1.18!important}
+  .v5-admin-header p{font-size:12px!important;line-height:1.45!important}
+  .v51-overview{gap:8px!important;margin:0 0 12px!important}
+  .v51-stat{min-height:0!important;padding:11px!important;border-radius:10px!important}
+  .v51-stat b{font-size:21px!important;line-height:1.2!important}
+  .v51-stat :is(small,span){font-size:10px!important}
+  .v5-catalog-tools{padding:10px!important;border-radius:11px!important;gap:8px!important}
+  .v5-catalog-tools input{min-height:42px!important;font-size:13px!important}
+  .v5-mobile-products{gap:8px!important}
+  .v5-mobile-row{padding:10px!important;border-radius:11px!important}
+  .v5-mobile-row-heading{gap:8px!important}
+  .v5-mobile-row-heading img{height:41px!important;width:41px!important}
+  .v5-mobile-row-heading strong{font-size:12px!important;line-height:1.35!important}
+  .v5-mobile-row-heading small{font-size:10px!important}
+  .v5-mobile-metrics{gap:5px 10px!important;margin-top:8px!important}
+  .v5-mobile-metrics :is(span,b){font-size:10.5px!important;line-height:1.33!important}
+  .v5-edit-trigger{min-height:39px!important;margin-top:8px!important;font-size:11px!important}
+  .v5-panel{padding:13px!important;border-radius:11px!important}
+  .v5-panel :is(input,select,textarea){min-height:42px!important;font-size:13px!important}
+  .v5-panel h2,.v5-panel h3{line-height:1.25!important}
+}
+@media(max-width:390px){.v5-filter-grid{grid-template-columns:1fr!important}.v51-overview{grid-template-columns:repeat(2,minmax(0,1fr))!important}.v5-mobile-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
