@@ -1,167 +1,37 @@
-# Nexus / CUYRA Catalog Cloud v5.0
+# Nexus / CUYRA Catalog Cloud V6.1 — Premium Light Commerce
 
-**Nueva entrega integral:** consulta [README_V5.md](README_V5.md) para cambios, despliegue y validaciones.
+Repositorio completo para GitHub y Vercel. **La raíz de este ZIP es la raíz del repositorio** (no subas una carpeta superior). Mantiene catálogo multiempresa, Supabase, rutas, sistema de pedidos y administrador existentes.
 
----
+## Instalación y despliegue
 
-# CUYRA Catalog Cloud v4.6.1 · VARGASUX01
+1. Haz respaldo de tu rama actual. Sube los archivos de este ZIP a una rama de prueba del repositorio.
+2. Mantén en Vercel las variables de entorno de `.env.example`: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `NEXUS_CATALOG_ADMIN_SECRET`, y `CATALOG_STORAGE_BUCKET` cuando proceda. Nunca publiques sus valores.
+3. Usa Node 20 o superior y ejecuta `npm install` y `npm run build` (Vercel usa `npm run build`). La salida es `dist`.
+4. Verifica `/c/daca-sport`, una ficha `/c/daca-sport/p/ID` y `/nexus-admin-tenant-7f4b2.html` en **Preview** antes de fusionar con `main`.
+5. Verifica stock, precios, un producto con descuento por cantidad, carrito, formulario, WhatsApp y un guardado real en el admin conectado a tu tenant.
 
-> **Tema público actual:** port completo de la experiencia `importadora-vargas-main` sobre el motor CUYRA. Se trasladaron composición, jerarquía visual, tarjetas, responsive, navegación y animaciones del tema de referencia sin sustituir la arquitectura multi-tenant de CUYRA.
+## Qué se implementó
 
-**Importante:** Daca, Rican y los demás catálogos siguen siendo tenants independientes. CUYRA Desktop continúa sincronizando productos, precio base, stock, imágenes y variantes hacia el tenant correspondiente. V4.6.1 no cambia los endpoints críticos de sincronización.
+- Solo tema claro, sin selector ni sincronización con el tema del sistema.
+- Sistema visual para catálogo y administrador: tipografía legible, márgenes consistentes, tarjetas y botones unificados, imagen sin blur agresivo, estados vacíos y transiciones discretas.
+- Navegación y búsqueda públicas, todas las categorías disponibles, filtros comerciales, tarjetas y detalles con precio detal, mayorista y condición de unidades mínimas cuando están configurados.
+- Bloque mayorista vinculado al selector de cantidad, ahorro y total en ficha/carrito. El API verifica precios y existencias contra Supabase para cada pedido; nunca se confía en el precio enviado por el navegador.
+- Reviews con resumen, distribución, tarjetas y estado inicial sin opiniones inventadas; productos relacionados, carrito y checkout comercial.
+- Admin claro con productos al inicio, búsqueda por nombre/SKU/marca, filtros, tabla en PC, fichas compactas móviles, paginación y editor comercial. Filtros plegables en teléfono.
+- CSS público `src/v6-complete.css`, CSS administrativo `public/nexus-admin-v6-complete.css` y versión de caché nueva en el service worker.
 
-**Base de datos:** no hay migración nueva en V4.6.1. Esta versión presupone la migración aditiva de V4.6.0 (`v4_6_commerce_theme.sql`) ya aplicada.
+## Pruebas y límites
 
----
+- Verificadas sintaxis TS/TSX, JS y estructura CSS; probado el precio por cantidad (1, 3, 4 y 5 unidades) y la UI del administrador con 850 artículos simulados en escritorio y teléfono.
+- La prueba visual usó productos simulados, no registros reales de tu tienda.
+- **No se pudo ejecutar `npm run build` localmente porque el registro npm no respondió (`EAI_AGAIN`)**. Por ese motivo tampoco se ha probado la conexión real a Supabase ni un deploy de Vercel. No se debe considerar verificado para producción hasta superar estas pruebas en Vercel Preview.
 
-# CUYRA Catalog Cloud V4.5.0 · RETAILUX02 + CHECKOUT02
+## Comandos
 
-> Update acumulativo no destructivo sobre V4.4.1. Conserva MOTIONUX01 + ADMINBANNERUX01 y añade RETAILUX02 + CHECKOUT02: rediseño retail responsive, navegación/búsqueda premium, cards/ficha V3 y checkout de solicitud estructurado hacia WhatsApp. Requiere la migración aditiva `supabase/migrations/v4_5_retailux_checkout.sql` para persistir los datos enriquecidos del checkout.
+```bash
+npm install
+npm run build
+npm run dev
+```
 
-Catálogo cloud multiempresa conectado a **CUYRA**. CUYRA es la fuente de verdad; Catalog Cloud es la proyección online para la tienda pública y consumidores autorizados como Sofía.
-
-> Compatibilidad: el repositorio y varias claves técnicas pueden seguir llamándose `Nexus-Catalog-Cloud` / `NEXUS_*` por continuidad operativa. El branding público de esta versión es CUYRA. No renombres secretos, slugs ni infraestructura durante este update.
-
-## Arquitectura
-
-`CUYRA → OUTBOX/HTTPS → Catalog Cloud → Supabase central → Web + API privada Sofía`
-
-GitHub contiene el código, Vercel ejecuta el proyecto y Supabase conserva la proyección cloud. Los productos se administran desde CUYRA.
-
-## V4 · producto padre + variantes
-
-El contrato V4 conserva `sourceGroupId`, `groupCode`, `groupName`, `variantLabel`, `variantAttributes` y los metadatos privados de Sofía. Catalog Cloud almacena cada SKU sincronizable y agrupa el storefront por `source_group_id`.
-
-En la tienda:
-- una tarjeta por producto/grupo;
-- precio único o `Desde` cuando hay rango;
-- stock agrupado respetando `show_stock_mode`;
-- ficha con selector de variantes;
-- la variante cambia imagen, SKU, precio y disponibilidad;
-- WhatsApp recibe la variante/SKU seleccionados;
-- productos sin variantes continúan funcionando.
-
-## V4.1 · CUYRA Catalog UI02
-
-- Root sin tenant = experiencia institucional **CUYRA Catalog**, nunca estado genérico vacío.
-- Tenant conectado = la marca del cliente es protagonista; CUYRA aparece discretamente como plataforma.
-- Topbar dinámica, header glass/sticky, hero premium, subbanner fino, categorías y marcas rediseñadas.
-- Buscador predictivo, filtros activos, ordenamiento y estados vacíos/error refinados.
-- Cards uniformes, variantes compactas, badges de destacado/disponibilidad y carga lazy de imágenes.
-- Ficha de producto comercial con CTA **Pedir por WhatsApp**, **Consultar disponibilidad**, cantidad, variantes, características y relacionados.
-- Footer white-label con `Powered by CUYRA` y CTA secundario de CUYRA al WhatsApp corporativo.
-- Responsive de escritorio/tablet/móvil.
-
-
-## V4.3 · MOBILECOMMERCE01
-
-Actualización enfocada en la **experiencia móvil del storefront**, sin crear una segunda fuente de verdad ni cambiar el modelo de inventario. Se conserva CUYRA como origen de productos, variantes, precios, stock, galería y publicación.
-
-- Header móvil tipo app: menú, marca del tenant, favoritos y pedido.
-- Hero compacto orientado a compra, reutilizando los datos actuales del tenant.
-- Accesos rápidos: categorías, marcas, destacados y pedido.
-- Carrusel horizontal de categorías en móvil.
-- Navegación inferior fija: Inicio, Categorías, Buscar, Destacados y Pedido.
-- Catálogo móvil de dos columnas más compacto con quick-add.
-- Filtros como bottom sheet con contador de resultados y acciones `Limpiar` / `Ver productos`.
-- Rango de precio utiliza los parámetros `minPrice`/`maxPrice` que ya soporta la API.
-- Filtro `Destacados` usa `featured=1` sobre el campo existente; no requiere migración.
-- Disponibilidad reutiliza la lógica actual del tenant.
-- Desktop, ficha de producto, galería, variantes, favoritos, recientes, pedido y WhatsApp se preservan.
-
-**No requiere migración SQL nueva.**
-
-
-## V4.5 · RETAILUX02 + CHECKOUT02
-
-- UI retail premium para desktop y móvil, sin reemplazar el stack ni los contratos de integración.
-- Header con logo, Marcas, Categorías, Ofertas, búsqueda predictiva, favoritos y carrito.
-- Announcement bar rotativa administrable, banners desktop/mobile, carrusel de marcas y categorías compactas.
-- Product Card V3 y Product Detail V3 con SKU, ratings, variantes, precio y disponibilidad.
-- `Comprar ahora`, carrito y checkout con Retiro / Envío, Zoom / Tealca, datos del cliente y métodos de pago configurables.
-- El backend revalida publicación, SKU/variante, precio y stock antes de generar el resumen de WhatsApp.
-- El checkout sigue siendo una **solicitud**: no crea ventas, no reserva/descuenta stock y no toca Caja.
-- Persistencia enriquecida aditiva en `catalog_whatsapp_requests`; fallback compatible con esquema V4.4.x.
-
-## V4.4 · MOBILECOMMERCE02 + PRODUCTUX01 + RATING01 + WACONFIRM01
-
-Update acumulativo inspirado en la experiencia comercial de Doña Ula y adaptado al modelo multi-tenant de CUYRA. No copia branding ni crea una segunda fuente de verdad.
-
-- Hero/banner carousel de hasta 3 slides por tenant, con fallback automático.
-- Home comercial con Categorías, Marcas, Destacados, Recomendados, Ofertas y Novedades.
-- Cards con precio anterior/descuento, badge promocional y calificaciones reales.
-- Filtro Ofertas y orden Mejor calificados.
-- Ficha de producto con galería/variantes, cantidad, relacionados, rating y reseñas moderadas.
-- Las reseñas nuevas nacen pendientes; el promedio público usa solo `approved=true`. No existen estrellas falsas precargadas.
-- Admin privado ampliado para banners/Home, Delivery/Retiro, merchandising (precio anterior, badge, recomendado) y moderación de reseñas.
-- Flujo de compra: lista/carrito → confirmación → Delivery/Retiro → código `CY-YYMMDD-XXXXXX` → WhatsApp estructurado.
-- El backend revalida producto, SKU, precio y stock publicados antes de crear la solicitud; no confía en precios guardados en el navegador.
-- Las solicitudes WhatsApp se registran en `catalog_whatsapp_requests`, pero **no crean ventas, no reservan stock y no modifican inventario/Caja**.
-- La sincronización desde Principales anteriores preserva el merchandising V4.4 cuando esos clientes todavía no envían los campos nuevos.
-- Se mantienen **12 archivos Serverless** en `api/`.
-
-**Migración requerida:** `supabase/migrations/v4_4_mobilecommerce02.sql` antes de desplegar V4.4.0. Es aditiva y no contiene `DROP`, `DELETE`, `TRUNCATE` ni renombres destructivos.
-
-## COMMERCEUX01
-
-- Lista de pedido ligera (sin checkout/pago web).
-- Cantidades por producto/variante.
-- Favoritos locales y vistos recientemente.
-- Compartir producto.
-- PWA instalable (manifest + service worker).
-- Mensajes de WhatsApp estructurados con producto, SKU, variante, cantidad, precio referencial, disponibilidad y origen.
-
-No se implementan todavía reservas, cotizaciones, apartados ni pagos online. La arquitectura queda preparada para esas etapas.
-
-## CATALOGANALYTICS01
-
-Eventos agregados y sin identidad de usuario: vistas de catálogo/producto, búsquedas, categorías, favoritos, compartir, añadir a lista y clics de consulta/pedido por WhatsApp.
-
-- Escritura pública controlada: `POST /api/analytics` (solo eventos allowlist, tenant activo y datos acotados).
-- Lectura administrativa: `GET /api/admin-analytics?slug=<tenant>&days=30` con `x-admin-secret`.
-- Migración aditiva: `supabase/migrations/v4_1_catalog_analytics.sql`.
-- Si la migración todavía no existe, el storefront sigue funcionando y la API de analytics degrada sin romper el catálogo.
-
-## API pública
-
-- `GET /api/catalog?slug=<tenant>`
-- `GET /api/product?slug=<tenant>&productId=<source_product_id>`
-- `POST /api/analytics`
-
-Rutas web:
-- `/c/<slug>`
-- `/c/<slug>/p/<source_product_id>`
-
-## API privada de Sofía
-
-- `GET /api/sofia-catalog?slug=<tenant>&q=<texto>`
-- `GET /api/sofia-product?slug=<tenant>&productId=<id>`
-- `GET /api/sofia-product?slug=<tenant>&sku=<sku>`
-
-Usa un token de lectura propio por tenant. Nunca entregar a Sofía `SUPABASE_SERVICE_ROLE_KEY`, `NEXUS_CATALOG_ADMIN_SECRET` ni el token `nxc_...` de sincronización.
-
-## Despliegue recomendado
-
-1. Crear commit/tag de respaldo del repo actual.
-2. Probar este source en una rama/Preview de Vercel.
-3. Ejecutar **solo si quieres analytics** `supabase/migrations/v4_1_catalog_analytics.sql` en el Supabase oficial.
-4. Ejecutar `supabase/migrations/v4_4_mobilecommerce02.sql` en el Supabase oficial.
-5. Verificar `/api/health` → `CUYRA Catalog Cloud`, `4.5.0`.
-6. Probar primero `/c/daca-sport` con productos reales, variantes, filtros, WhatsApp y móvil.
-7. Confirmar que logo/colores/datos de Daca Sport siguen siendo protagonistas.
-8. Solo después hacer merge a `main` / Production.
-
-La actualización del storefront no cambia la fuente de verdad ni requiere duplicar productos.
-
-
-## v4.6.0 · Commerce Theme
-
-Esta versión agrega un tema comercial opcional inspirado en la jerarquía visual del respaldo de Distribuidora Vargas sin reemplazar la arquitectura CUYRA.
-
-- El Admin Cloud puede activar `Commerce` como override visual por empresa.
-- La sincronización CUYRA → Cloud conserva su token, endpoints y protocolo actuales.
-- `sync-settings` fusiona la configuración enviada por CUYRA con ajustes Cloud para no borrar el tema, métodos de pago, carriers, anuncios o logos configurados en Admin.
-- Precio base `0` se muestra como **Consultar** y no se permite finalizar un pedido con productos sin precio.
-- Precio mayorista y cantidad mínima son opcionales y se administran desde Admin Cloud.
-
-Antes de activar precio mayorista, ejecutar `v4_6_commerce_theme.sql` en el proyecto Supabase correspondiente.
+Nota: los archivos CSS anteriores siguen presentes para compatibilidad con las pantallas heredadas; las reglas V6.1 son las últimas aplicadas y prevalecen. No cambies las claves ni las APIs al actualizar solo el frontend.
