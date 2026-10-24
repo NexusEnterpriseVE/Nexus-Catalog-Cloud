@@ -1,5 +1,5 @@
 /* CUYRA Catalog V5.2 | commercial UX, legibility and real wholesale tiers */
-:root{--v5-bg:#f6f8fb;--v5-panel:#fff;--v5-raised:#f1f5f9;--v5-text:#172338;--v5-subtle:#596b81;--v5-border:#e1e7f0;--v52-green:#08764e;--v52-positive:#eaf8f0;--v52-tint:#f6f8fb;color-scheme:light}
+:root{--v5-bg:var(--n-50);--v5-panel:var(--n-0);--v5-raised:var(--n-100);--v5-text:var(--n-900);--v5-subtle:var(--n-550);--v5-border:color-mix(in oklab,#e1e7f0 var(--tint-mix),var(--n-200));--v52-green:#08764e;--v52-positive:color-mix(in oklab,#eaf8f0 var(--tint-mix),var(--n-0));--v52-tint:var(--n-50);color-scheme:light}
 html{scroll-padding-top:92px}html,body,#root{max-width:100%;overflow-x:clip}body{background:var(--v5-bg);color:var(--v5-text);font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;-webkit-font-smoothing:antialiased}
 .app,.iv-store,.product-page{color:var(--v5-text)}
 :is(.iv-store,.product-page) :is(p,small,span,b,button,a,input,select,textarea){text-wrap:pretty}

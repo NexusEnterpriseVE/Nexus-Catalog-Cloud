@@ -1,5 +1,5 @@
 /* Nexus / CUYRA Catalog V5 — single source of storefront theme and component styling */
-:root{--v5-bg:#f5f7fb;--v5-panel:#fff;--v5-raised:#f8fafc;--v5-text:#15243c;--v5-subtle:#64748b;--v5-border:#e3e9f1;--v5-shadow:0 12px 38px rgba(20,43,82,.065);color-scheme:light}
+:root{--v5-bg:var(--n-75);--v5-panel:var(--n-0);--v5-raised:var(--n-50);--v5-text:var(--n-900);--v5-subtle:var(--n-500);--v5-border:var(--n-200);--v5-shadow:0 12px 38px rgba(20,43,82,.065);color-scheme:light}
 html:focus-within{scroll-behavior:smooth}
 :where(button,a,input,select,textarea):focus-visible{outline:3px solid color-mix(in srgb,var(--tenant-accent,#2869df) 43%,transparent);outline-offset:2px}
 .v5-theme-control{position:fixed;top:104px;right:15px;z-index:91;display:inline-flex;align-items:center;gap:5px;padding:6px 9px;background:var(--v5-panel);border:1px solid var(--v5-border);border-radius:999px;box-shadow:var(--v5-shadow);color:var(--v5-text);font-size:12px;font-weight:800;line-height:1}
@@ -13,7 +13,7 @@ html:focus-within{scroll-behavior:smooth}
 .iv-product-card.v5-product-card:hover .v5-card-media img{transform:scale(1.025)}
 /* Intentionally NO backdrop-blur over sold-out images, so the product remains identifiable */
 .iv-product-card.v5-product-card.is-out .v5-card-media img{opacity:.82;filter:grayscale(.28) blur(.65px)}
-.iv-product-card.v5-product-card .iv-card-soldout{background:rgba(11,18,32,.06);backdrop-filter:none;pointer-events:none;place-items:end start;padding:14px}
+.iv-product-card.v5-product-card .iv-card-soldout{background:rgb(var(--n-ink-rgb) / 0.06);backdrop-filter:none;pointer-events:none;place-items:end start;padding:14px}
 .iv-product-card.v5-product-card .iv-card-soldout span{background:#253247;color:white;font-size:10px;border-radius:8px;padding:7px 12px;letter-spacing:.04em}
 .v5-card-badges{position:absolute;top:10px;left:10px;display:flex;align-items:flex-start;flex-wrap:wrap;gap:5px;max-width:75%;z-index:4}
 .v5-card-badges .iv-card-badge{position:static;max-width:100%;white-space:normal;font-size:9px;letter-spacing:.01em;font-weight:800;border-radius:7px;padding:6px 9px;box-shadow:0 3px 10px #101a2414}

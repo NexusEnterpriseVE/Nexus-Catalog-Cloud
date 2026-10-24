@@ -1,15 +1,15 @@
 /* Nexus Catalog Cloud V6.3 · Mobile Comfort + Wholesale Visibility
    Overrides only presentation. Prices remain sourced from the tenant API. */
 :root{color-scheme:light}
-.v63-card-wholesale{display:grid!important;gap:4px!important;border:1px solid #d6eadf!important;border-radius:10px!important;background:#f0faf5!important;padding:10px 11px!important;min-width:0;color:#176246!important}
-.v63-wholesale-kicker{display:inline-flex;align-items:center;gap:5px;color:#176246!important;font-size:11px!important;line-height:1.25;font-weight:730!important;letter-spacing:0!important;text-transform:none!important}
+.v63-card-wholesale{display:grid!important;gap:4px!important;border:1px solid color-mix(in oklab,#d6eadf var(--tint-mix),var(--n-200))!important;border-radius:10px!important;background:var(--n-50)!important;padding:10px 11px!important;min-width:0;color:color-mix(in oklab,#176246 var(--ink-mix),#fff)!important}
+.v63-wholesale-kicker{display:inline-flex;align-items:center;gap:5px;color:color-mix(in oklab,#176246 var(--ink-mix),#fff)!important;font-size:11px!important;line-height:1.25;font-weight:730!important;letter-spacing:0!important;text-transform:none!important}
 .v63-wholesale-inline{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px 10px;min-width:0}
-.v63-wholesale-inline b{font-weight:820!important;font-size:16px!important;letter-spacing:-.02em;color:#12563b!important;white-space:nowrap}
+.v63-wholesale-inline b{font-weight:820!important;font-size:16px!important;letter-spacing:-.02em;color:color-mix(in oklab,#12563b var(--ink-mix),#fff)!important;white-space:nowrap}
 .v63-wholesale-inline em{font-size:11px!important;font-style:normal;font-weight:650}
-.v63-wholesale-inline strong{font-size:11px!important;padding:4px 7px;background:#ddf3e6;border-radius:7px;color:#176246!important;white-space:nowrap}
+.v63-wholesale-inline strong{font-size:11px!important;padding:4px 7px;background:color-mix(in oklab,#ddf3e6 var(--tint-mix),var(--n-0));border-radius:7px;color:color-mix(in oklab,#176246 var(--ink-mix),#fff)!important;white-space:nowrap}
 .v63-card-wholesale small{font-size:11px!important;color:#386d59!important;line-height:1.35!important;overflow-wrap:normal}
-.v63-wholesale-teaser{display:flex;align-items:center;gap:8px;min-width:0;width:100%;background:#eef9f2;color:#126244!important;border:1px solid #d3eddf;border-radius:10px;padding:9px 11px;margin:8px 0 6px;font-size:12px;font-weight:570;line-height:1.4;text-decoration:none}
-.v63-wholesale-teaser svg{flex-shrink:0}.v63-wholesale-teaser span{flex:1;min-width:0}.v63-wholesale-teaser b{font-weight:820}.v63-wholesale-teaser:hover{background:#e2f5e9}
+.v63-wholesale-teaser{display:flex;align-items:center;gap:8px;min-width:0;width:100%;background:color-mix(in oklab,#eef9f2 var(--tint-mix),var(--n-0));color:color-mix(in oklab,#126244 var(--ink-mix),#fff)!important;border:1px solid color-mix(in oklab,#d3eddf var(--tint-mix),var(--n-200));border-radius:10px;padding:9px 11px;margin:8px 0 6px;font-size:12px;font-weight:570;line-height:1.4;text-decoration:none}
+.v63-wholesale-teaser svg{flex-shrink:0}.v63-wholesale-teaser span{flex:1;min-width:0}.v63-wholesale-teaser b{font-weight:820}.v63-wholesale-teaser:hover{background:color-mix(in oklab,#e2f5e9 var(--tint-mix),var(--n-0))}
 #precio-mayor{scroll-margin-top:105px}
 /* Consistent text and interactive targets, without huge boxes */
 .iv-store,.product-page{max-width:100%;overflow-x:clip}

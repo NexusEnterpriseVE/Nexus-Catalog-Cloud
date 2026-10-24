@@ -1,0 +1,122 @@
+/* CUYRA design system: tokens, tema claro/oscuro, tipografía y estados.
+   Se carga después de las hojas heredadas. Los colores neutros de esas hojas
+   apuntan a la escala --n-* (ver scripts/design/tokenize-colors.mjs); aquí se
+   define cada tema. El acento de cada empresa (--tenant-accent) no se toca. */
+
+:root{
+  /* Escala neutra — tema claro */
+  --n-0:#ffffff;--n-25:#fbfcfd;--n-50:#f8fafc;--n-75:#f3f5f8;--n-100:#f1f5f9;--n-150:#eaeef3;
+  --n-200:#e2e8f0;--n-250:#d5dce6;--n-300:#cbd5e1;--n-350:#b1bccb;--n-400:#94a3b8;--n-450:#7c889b;--n-500:#64748b;--n-550:#56657a;--n-600:#475569;
+  --n-700:#334155;--n-800:#1e293b;--n-900:#0f172a;--n-950:#020617;
+  --n-0-rgb:255 255 255;--n-ink-rgb:15 23 42;
+  /* Mezclas: 100% conserva el color original en tema claro */
+  --ink-mix:100%;--tint-mix:100%;
+
+  /* Semánticos */
+  --surface-page:var(--n-50);--surface:var(--n-0);--surface-sunken:var(--n-100);
+  --text:var(--n-900);--text-muted:var(--n-500);--text-subtle:var(--n-400);
+  --line:var(--n-200);--line-strong:var(--n-300);
+  --media-well:#ffffff;
+  --status-success:#15803d;--status-warning:#b45309;--status-danger:#b42318;--status-info:#1d4ed8;
+  --focus-ring:color-mix(in oklab,var(--tenant-accent,#1368ff) 70%,var(--n-900));
+
+  /* Tipografía: Montserrat (identidad) en títulos, Inter en interfaz y cifras */
+  --font-display:'Montserrat',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-ui:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+
+  /* Movimiento */
+  --ease-out:cubic-bezier(.23,1,.32,1);
+  --ease-in-out:cubic-bezier(.77,0,.175,1);
+  --ease-drawer:cubic-bezier(.32,.72,0,1);
+  --dur-press:140ms;--dur-fast:180ms;--dur-base:240ms;
+
+  color-scheme:light;
+}
+
+:root[data-theme="dark"]{
+  --n-0:#111826;--n-25:#0f1623;--n-50:#0a0f1a;--n-75:#141c2b;--n-100:#161f2f;--n-150:#1b2536;
+  --n-200:#253043;--n-250:#2c384c;--n-300:#334056;--n-350:#4b576d;--n-400:#64718a;--n-450:#7d8aa0;--n-500:#97a2b6;--n-550:#a5afbf;--n-600:#b3bccb;
+  --n-700:#cbd2dd;--n-800:#dfe4eb;--n-900:#eef1f6;--n-950:#f8fafc;
+  --n-0-rgb:17 24 38;--n-ink-rgb:238 241 246;
+  --ink-mix:52%;--tint-mix:14%;
+  --media-well:#eef1f5;
+  --status-success:#4ade80;--status-warning:#fbbf24;--status-danger:#f87171;--status-info:#93c5fd;
+  --focus-ring:color-mix(in oklab,var(--tenant-accent,#1368ff) 55%,#fff);
+  color-scheme:dark;
+}
+
+html,body{background:var(--surface-page);color:var(--text)}
+
+/* Sin transiciones mientras cambia el tema: evita estados a medio cambiar */
+.theme-switching,.theme-switching *,.theme-switching *::before,.theme-switching *::after{transition:none!important}
+
+/* ---------- Tipografía ---------- */
+.app,.app button,.app input,.app select,.app textarea{font-family:var(--font-ui)}
+.app h1,.app h2,.app h3,.iv-hero h1,.iv-catalog-heading h2,.app .section-heading-row h2,
+.iv-hero-label,.iv-catalog-heading>div:first-child>span,.iv-topline{font-family:var(--font-display)}
+.app h1,.app h2{letter-spacing:-.025em;text-wrap:balance}
+.app [class*="price"],.app [class*="total"],.app [class*="qty"],.app [class*="count"]{font-variant-numeric:tabular-nums}
+
+/* ---------- Superficies del navegador ---------- */
+::selection{background:color-mix(in oklab,var(--tenant-accent,#1368ff) 24%,transparent);color:inherit}
+html{caret-color:var(--tenant-accent,#1368ff);scrollbar-color:var(--n-300) transparent}
+a{text-underline-offset:.18em}
+
+/* ---------- Foco visible en todo control ---------- */
+.app :is(a,button,input,select,textarea,summary,[tabindex]):focus-visible{
+  outline:2px solid var(--focus-ring);outline-offset:2px;border-radius:inherit}
+.app :is(input,select,textarea):focus-visible{outline-offset:0}
+
+/* ---------- Botones: respuesta inmediata al pulsar ---------- */
+.app button,.app [role="button"],.iv-primary-pill,.iv-secondary-pill,.mini-add,.app a[class*="btn"],.app a[class*="button"]{
+  transition:transform var(--dur-press) var(--ease-out),background-color var(--dur-fast) ease,border-color var(--dur-fast) ease,color var(--dur-fast) ease,box-shadow var(--dur-fast) ease,opacity var(--dur-fast) ease;
+  -webkit-tap-highlight-color:transparent}
+.app button:not(:disabled):active,.app [role="button"]:active,.iv-primary-pill:active,.iv-secondary-pill:active,.mini-add:active{transform:scale(.97)}
+.app button:disabled{cursor:not-allowed;opacity:.55}
+
+/* ---------- Imágenes de producto: fondo claro también en oscuro ---------- */
+:root[data-theme="dark"] :is(.iv-card-media,.detail-media,.detail-main-image,.product-gallery-thumbs button,.variant-thumbs button,
+  .order-thumb,.recent-thumb,.suggestion-thumb,.checkout-item-thumb,.iv-skeleton-media,.iv-hero-featured-icon){background:var(--media-well)!important}
+:root[data-theme="dark"] .iv-card-media img,:root[data-theme="dark"] .detail-main-image img{mix-blend-mode:multiply}
+:root[data-theme="dark"] .iv-header-brand img{background:#fff;border-radius:10px}
+
+/* ---------- Movimiento: contenido visible enseguida, sin bucles decorativos ---------- */
+.iv-hero-copy>*,.iv-hero-visual,.iv-hero-featured-card{animation-duration:.32s!important;animation-delay:0s!important;animation-timing-function:var(--ease-out)!important}
+.iv-hero-copy>*:nth-child(2){animation-delay:40ms!important}
+.iv-hero-copy>*:nth-child(3){animation-delay:80ms!important}
+.iv-hero-copy>*:nth-child(n+4){animation-delay:120ms!important}
+.iv-hero-art-image,.iv-hero-float-card,.iv-benefit-price,.iv-benefit-delivery,.iv-benefit-support,.iv-benefit-check,.iv-topline::before,.iv-topline::after{animation:none!important}
+.iv-brand-marquee:hover .iv-brand-marquee-track{animation-play-state:paused}
+
+/* ---------- Selector de tema ---------- */
+.theme-toggle{position:relative;display:inline-grid;place-items:center;width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer}
+.theme-toggle svg{grid-area:1/1;width:18px;height:18px;transition:transform var(--dur-base) var(--ease-out),opacity var(--dur-fast) ease}
+.theme-toggle .icon-moon{opacity:0;transform:rotate(-60deg) scale(.7)}
+:root[data-theme="dark"] .theme-toggle .icon-sun{opacity:0;transform:rotate(60deg) scale(.7)}
+:root[data-theme="dark"] .theme-toggle .icon-moon{opacity:1;transform:none}
+@media (hover:hover) and (pointer:fine){.theme-toggle:hover{background:var(--surface-sunken)}}
+.cuyra-theme-float{position:fixed;top:14px;right:14px;z-index:60}
+
+/* ---------- Movimiento reducido: sin desplazamientos, se mantienen opacidad y color ---------- */
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:1ms!important;animation-iteration-count:1!important;animation-delay:0s!important;scroll-behavior:auto!important}
+  .app button:active,.iv-primary-pill:active,.iv-secondary-pill:active,.mini-add:active{transform:none!important}
+  .theme-toggle svg{transition:opacity var(--dur-fast) ease}
+}
+
+/* Referencia en Bs bajo los totales (carrito y confirmación) */
+.order-total-bs{display:block;font-style:normal;font-size:12px;font-weight:600;color:var(--text-muted);font-variant-numeric:tabular-nums;margin-top:2px}
+
+/* Frases completas en caja normal: las mayúsculas se reservan para etiquetas cortas */
+.v52-wholesale-feedback,.v52-wholesale-feedback *{text-transform:none!important;letter-spacing:0!important}
+
+/* ---------- Avisos ---------- */
+.cuyra-toaster{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:80;display:grid;gap:8px;width:min(420px,calc(100vw - 32px));pointer-events:none}
+.cuyra-toast{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;background:var(--n-900);color:var(--n-0);font:600 14px/1.35 var(--font-ui);box-shadow:0 12px 32px rgb(2 6 23 / .22);
+  animation:cuyra-toast-in var(--dur-base) var(--ease-out) both}
+@keyframes cuyra-toast-in{from{opacity:0;transform:translateY(8px) scale(.98)}}
+.cuyra-toast svg{flex-shrink:0;color:var(--status-success)}
+.cuyra-toast.warning svg{color:var(--status-warning)}
+:root[data-theme="dark"] .cuyra-toast svg{color:#15803d}
+:root[data-theme="dark"] .cuyra-toast.warning svg{color:#b45309}
+@media (max-width:860px){.cuyra-toaster{bottom:calc(84px + env(safe-area-inset-bottom))}}
