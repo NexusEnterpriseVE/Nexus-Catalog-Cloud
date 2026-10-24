@@ -9,7 +9,9 @@
     "preview": "vite preview",
     "qa:wholesale": "node scripts/qa/qa_v52_wholesale.cjs",
     "qa:v63": "node scripts/qa/qa_v63_mobile_wholesale.cjs",
-    "typecheck": "tsc --noEmit -p ."
+    "typecheck": "tsc --noEmit -p .",
+    "qa:search": "node scripts/qa/qa_search.cjs",
+    "qa": "npm run typecheck && npm run qa:wholesale && npm run qa:v63 && npm run qa:search"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.56.0",
