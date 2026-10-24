@@ -1,6 +1,6 @@
 import { adminDb } from '../server/supabase.js'
 import { err, json } from '../server/http.js'
-import { buildPublicGroups, rowGroupKey, type CatalogRow } from '../server/catalog-v4.js'
+import { buildPublicGroups, rowGroupKey, withCurrentRate, type CatalogRow } from '../server/catalog-v4.js'
 import { sha256 } from '../server/security.js'
 
 const SLUG=/^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$/
@@ -16,8 +16,8 @@ async function handleGET(request:Request){
   try{const url=new URL(request.url),slug=(url.searchParams.get('slug')||'').trim().toLowerCase(),sourceProductId=Number(url.searchParams.get('productId'));if(!SLUG.test(slug)||!Number.isInteger(sourceProductId)||sourceProductId<=0)return json({ok:false,error:'Producto inválido'},{status:400});const db=adminDb();const {data:tenant,error:tErr}=await db.from('catalog_tenants').select(TENANT).eq('slug',slug).eq('active',true).maybeSingle();if(tErr)throw new Error(tErr.message);if(!tenant)return json({ok:false,error:'Catálogo no encontrado'},{status:404})
     const {data:target,error:targetErr}=await db.from('catalog_products').select(ROWS).eq('tenant_id',tenant.id).eq('source_product_id',sourceProductId).eq('published',true).eq('public_visible',true).eq('active',true).maybeSingle();if(targetErr)throw new Error(targetErr.message);if(!target)return json({ok:false,error:'Producto no encontrado'},{status:404})
     let groupRows:CatalogRow[]=[];if(target.source_group_id){const {data,error}=await db.from('catalog_products').select(ROWS).eq('tenant_id',tenant.id).eq('source_group_id',target.source_group_id).eq('published',true).eq('public_visible',true).eq('active',true);if(error)throw new Error(error.message);groupRows=(data||[]) as CatalogRow[]}else groupRows=[target as CatalogRow]
-    const reviews=await approvedReviews(db,tenant.id,target),score=ratings(reviews),product={...buildPublicGroups(groupRows,tenant)[0],...score};if(!product)return json({ok:false,error:'Producto no disponible'},{status:404})
-    const allRows=await fetchPublicRows(db,tenant.id),ratingLookup=await ratingMap(db,tenant.id),currentKey=rowGroupKey(target as CatalogRow),related=buildPublicGroups(allRows,tenant).filter(g=>{const key=g.source_group_id?`g:${g.source_group_id}`:`p:${g.source_product_id}`;return key!==currentKey&&(!product.category||g.category===product.category)}).sort((a,b)=>Number(b.recommended)-Number(a.recommended)||Number(b.featured)-Number(a.featured)||a.name.localeCompare(b.name,'es')).slice(0,8).map(g=>({...withRating(g,ratingLookup),variants:undefined}));const {id,...tenantPublic}=tenant as any
+    const [reviews,allRows,ratingLookup]=await Promise.all([approvedReviews(db,tenant.id,target),fetchPublicRows(db,tenant.id),ratingMap(db,tenant.id)]),score=ratings(reviews),product={...buildPublicGroups(withCurrentRate(groupRows,tenant.rate_bs_per_usd),tenant)[0],...score};if(!product)return json({ok:false,error:'Producto no disponible'},{status:404})
+    const currentKey=rowGroupKey(target as CatalogRow),related=buildPublicGroups(withCurrentRate(allRows,tenant.rate_bs_per_usd),tenant).filter(g=>{const key=g.source_group_id?`g:${g.source_group_id}`:`p:${g.source_product_id}`;return key!==currentKey&&(!product.category||g.category===product.category)}).sort((a,b)=>Number(b.recommended)-Number(a.recommended)||Number(b.featured)-Number(a.featured)||a.name.localeCompare(b.name,'es')).slice(0,8).map(g=>({...withRating(g,ratingLookup),variants:undefined}));const {id,...tenantPublic}=tenant as any
     return json({ok:true,tenant:tenantPublic,product,related,reviews:reviews.slice(0,20),protocol:'v4.4-commerce'})
   }catch(e){return err(e)}
 }

@@ -1,4 +1,7 @@
 {
+  "regions": [
+    "pdx1"
+  ],
   "rewrites": [
     {
       "source": "/c/:slug",

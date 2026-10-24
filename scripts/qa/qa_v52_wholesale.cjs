@@ -22,16 +22,20 @@ assert.equal(ctx.wholesaleTier(32,28,0,4).eligible,false,'Require minimum quanti
 let products=[{source_product_id:100,sku:'GG5X',name:'Molten GG5X',price_usd:32,price_bs:1000,wholesale_price_usd:28,wholesale_price_bs:875,wholesale_min_quantity:4,stock_exact:100}];
 let commerce={deliveryEnabled:false,pickupEnabled:true,pickupLabel:'Retiro',paymentMethods:[{id:'pago_movil',label:'Pago Móvil',enabled:true}],showWholesalePrice:true};
 let lastInserted=null;
+let tenantRate=887.3;
+// Funciones reales de tasa: la conversión a Bs forma parte de lo que se prueba.
+const catalogV4Src=ts.transpileModule(fs.readFileSync(path.join(root,'server/catalog-v4.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+const catalogV4={};new Function('require','exports','module',catalogV4Src)(require,catalogV4,{exports:catalogV4});
 const db={from(table){return {
  select(){return this},eq(){return this},in(){return Promise.resolve({data:products,error:null})},
- maybeSingle(){return Promise.resolve({data:{id:'tenant-id',public_name:'Daca Sport',phone:'584120000000',commerce_settings_json:commerce},error:null})},
+ maybeSingle(){return Promise.resolve({data:{id:'tenant-id',public_name:'Daca Sport',phone:'584120000000',commerce_settings_json:commerce,rate_bs_per_usd:tenantRate,rate_source:'BCV'},error:null})},
  insert(data){lastInserted=data;return Promise.resolve({error:null})}
 }}};
 const fakeRequire=name=>{
  if(name==='node:crypto')return {default:require('node:crypto')};
  if(name==='../server/supabase.js')return {adminDb:()=>db};
  if(name==='../server/http.js')return {json:(value,init)=>new Response(JSON.stringify(value),{status:init?.status||200,headers:{'content-type':'application/json'}}),err:(error)=>new Response(JSON.stringify({error:String(error)}),{status:500})};
- if(name==='../server/catalog-v4.js')return {buildPublicGroups:()=>[],groupMatchesPrice:()=>true};
+ if(name==='../server/catalog-v4.js')return {buildPublicGroups:()=>[],groupMatchesPrice:()=>true,withCurrentRate:catalogV4.withCurrentRate,currentBs:catalogV4.currentBs};
  return require(name);
 };
 const raw=fs.readFileSync(path.join(root,'api/catalog.ts'),'utf8');
@@ -54,9 +58,20 @@ async function checkout(qty){
    assert.equal(response.items[0].wholesaleApplied,discounted);
    assert.equal(lastInserted.total_reference_usd,total);
    if(discounted)assert.match(response.whatsappText,/precio al mayor/);
+   // Bs con la tasa de la empresa, no con el price_bs almacenado (foto de otra fecha)
+   assert.equal(response.items[0].priceBs,Math.round((discounted?28:32)*887.3*100)/100);
+   assert.match(response.whatsappText,/Referencia en Bs: Bs [\d.]+,\d{2} \(tasa BCV: 887,3 Bs\/USD\)/);
  }
+ assert.equal(catalogV4.currentBs(35,887.3),31055.5);
+ assert.equal(catalogV4.currentBs(35,0),0,'Sin tasa válida no hay equivalente');
+ assert.equal(catalogV4.currentBs(0,887.3),0);
+ tenantRate=null;
+ const noRate=await checkout(1);
+ assert.equal(noRate.items[0].priceBs,0);
+ assert.doesNotMatch(noRate.whatsappText,/Referencia en Bs/,'Sin tasa no se presenta un equivalente');
+ tenantRate=887.3;
  commerce.showWholesalePrice=false;
  const inactive=await checkout(4);
  assert.equal(inactive.total,128);
- console.log('PASS wholesale quantities: 1,3,4,5; checkout server, WhatsApp and disabled wholesale');
+ console.log('PASS wholesale quantities: 1,3,4,5; checkout server, WhatsApp, Bs at tenant rate, missing rate and disabled wholesale');
 })().catch(e=>{console.error(e);process.exit(1)});

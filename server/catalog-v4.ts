@@ -105,6 +105,21 @@ function n(v:unknown){const x=Number(v);return Number.isFinite(x)?x:0}
 function s(v:unknown){return typeof v==='string'?v:''}
 function attrs(v:unknown):Record<string,unknown>{return v&&typeof v==='object'&&!Array.isArray(v)?v as Record<string,unknown>:{} }
 
+// Equivalente en Bs con la tasa configurada de la empresa (única fuente de verdad).
+// price_bs almacenado es una foto de la tasa del día de cada sincronización; no se modifica.
+// Sin tasa válida no se muestra equivalente (0), para no presentar una cifra desactualizada.
+export function currentBs(usd:unknown,rate:unknown){
+  const u=Number(usd),r=Number(rate)
+  if(!Number.isFinite(u)||u<=0||!Number.isFinite(r)||r<=0)return 0
+  return Math.round(u*r*100)/100
+}
+export function withCurrentRate<T extends Partial<CatalogRow>>(rows:T[],rate:unknown):T[]{
+  return rows.map(r=>({...r,
+    price_bs:currentBs(r.price_usd,rate),
+    compare_at_price_bs:r.compare_at_price_usd===null||r.compare_at_price_usd===undefined?r.compare_at_price_bs:currentBs(r.compare_at_price_usd,rate)||null,
+    wholesale_price_bs:r.wholesale_price_usd===null||r.wholesale_price_usd===undefined?r.wholesale_price_bs:currentBs(r.wholesale_price_usd,rate)||null}))
+}
+
 export function rowGroupKey(r:CatalogRow){
   return r.source_group_id&&Number.isInteger(Number(r.source_group_id))?`g:${r.source_group_id}`:`p:${r.source_product_id}`
 }

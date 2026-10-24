@@ -1,6 +1,6 @@
 import { adminDb } from '../server/supabase.js'
 import { err, json } from '../server/http.js'
-import { buildPublicGroups, groupMatchesPrice, type CatalogRow, type PublicGroup } from '../server/catalog-v4.js'
+import { buildPublicGroups, groupMatchesPrice, withCurrentRate, currentBs, type CatalogRow, type PublicGroup } from '../server/catalog-v4.js'
 import crypto from 'node:crypto'
 
 const SLUG=/^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$/
@@ -14,6 +14,7 @@ function safeText(v:unknown,max=180){return String(v??'').replace(/[\u0000-\u001
 function digits(v:unknown){return String(v??'').replace(/\D/g,'')}
 function enabledOptions(raw:unknown,defaults:any[]){const source=Array.isArray(raw)&&raw.length?raw:defaults;return source.map((x:any)=>({id:safeText(x?.id,40).toLowerCase(),label:safeText(x?.label,80),enabled:x?.enabled!==false,free:!!x?.free})).filter((x:any)=>x.id&&x.label&&x.enabled)}
 function usd(v:number){return `$${Number(v||0).toFixed(2)}`}
+function bsText(v:number){return `Bs ${Number(v||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})}`}
 
 async function publicRows(db:any,tenantId:string){
   const out:CatalogRow[]=[];const batch=1000,max=10000
@@ -45,7 +46,7 @@ async function handleGET(request:Request){
     if(!SLUG.test(slug))return json({ok:false,error:'slug inválido'},{status:400})
     const db=adminDb();const {data:tenant,error:tErr}=await db.from('catalog_tenants').select(TENANT).eq('slug',slug).eq('active',true).maybeSingle();if(tErr)throw new Error(tErr.message);if(!tenant)return json({ok:false,error:'Catálogo no encontrado'},{status:404})
     if(manifest){const accent=/^#[0-9a-f]{6}$/i.test(tenant.accent_color||'')?tenant.accent_color:'#1368ff';return new Response(JSON.stringify({name:`${tenant.public_name} · Catálogo`,short_name:String(tenant.public_name||'Catálogo').slice(0,28),description:`Catálogo online de ${tenant.public_name}, conectado con CUYRA.`,start_url:`/${encodeURIComponent(tenant.slug)}`,scope:'/',display:'standalone',background_color:'#f5f7fb',theme_color:accent,icons:[{src:'/cuyra-icon-192.png',sizes:'192x192',type:'image/png'},{src:'/cuyra-icon-512.png',sizes:'512x512',type:'image/png'}]}),{status:200,headers:{'content-type':'application/manifest+json; charset=utf-8','cache-control':'public, max-age=300'}})}
-    const rows=await publicRows(db,tenant.id),ratings=await ratingMap(db,tenant.id),allGroups=buildPublicGroups(rows,tenant).map(g=>attachRating(g,ratings))
+    const [rows,ratings]=await Promise.all([publicRows(db,tenant.id),ratingMap(db,tenant.id)]),allGroups=buildPublicGroups(withCurrentRate(rows,tenant.rate_bs_per_usd),tenant).map(g=>attachRating(g,ratings))
     const categories=[...new Set(allGroups.map(x=>x.category).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es')),subcategories=[...new Set(allGroups.map(x=>x.subcategory).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es')),brands=[...new Set(allGroups.map(x=>x.brand).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'es'))
     const prices=allGroups.map(x=>x.price_usd),priceRange={min:prices.length?Math.min(...prices):0,max:allGroups.length?Math.max(...allGroups.map(x=>x.price_usd_max)):0}
     let groups=allGroups.filter(g=>textMatch(g,q));if(category)groups=groups.filter(g=>g.category===category);if(subcategory)groups=groups.filter(g=>g.subcategory===subcategory);if(brand)groups=groups.filter(g=>g.brand===brand);if(featuredOnly)groups=groups.filter(g=>!!g.featured);if(recommendedOnly)groups=groups.filter(g=>!!g.recommended);if(promoOnly)groups=groups.filter(g=>!!g.promo_badge||(Number(g.compare_at_price_usd)||0)>Number(g.price_usd))
@@ -67,7 +68,7 @@ async function handlePOST(request:Request){
     if(!requested.length)return json({ok:false,error:'No hay productos válidos'},{status:400})
 
     const db=adminDb()
-    const {data:tenant,error}=await db.from('catalog_tenants').select('id,public_name,phone,commerce_settings_json').eq('slug',slug).eq('active',true).maybeSingle()
+    const {data:tenant,error}=await db.from('catalog_tenants').select('id,public_name,phone,commerce_settings_json,rate_bs_per_usd,rate_source').eq('slug',slug).eq('active',true).maybeSingle()
     if(error)throw new Error(error.message)
     if(!tenant)return json({ok:false,error:'Catálogo no encontrado'},{status:404})
     const commerce=tenant.commerce_settings_json&&typeof tenant.commerce_settings_json==='object'?tenant.commerce_settings_json:{},fulfillment=body?.fulfillment==='pickup'?'pickup':'delivery'
@@ -95,7 +96,7 @@ async function handlePOST(request:Request){
     const sourceIds=[...new Set(requested.map((x:any)=>Number(x.variantId||x.id)))]
     const {data:rows,error:rowsError}=await db.from('catalog_products').select('source_product_id,source_group_id,group_name,variant_label,variant_name,sku,name,price_usd,price_bs,wholesale_price_usd,wholesale_price_bs,wholesale_min_quantity,stock_exact').eq('tenant_id',tenant.id).eq('published',true).eq('public_visible',true).eq('active',true).in('source_product_id',sourceIds)
     if(rowsError)throw new Error(rowsError.message)
-    const byId=new Map((rows||[]).map((r:any)=>[Number(r.source_product_id),r])),demand=new Map<number,number>()
+    const byId=new Map(withCurrentRate((rows||[]) as any[],tenant.rate_bs_per_usd).map((r:any)=>[Number(r.source_product_id),r])),demand=new Map<number,number>()
     for(const item of requested){const sourceId=Number(item.variantId||item.id);demand.set(sourceId,(demand.get(sourceId)||0)+item.qty)}
     for(const [id,qty] of demand){const row:any=byId.get(id);if(!row)return json({ok:false,error:'Uno de los productos ya no está publicado. Actualiza el carrito.'},{status:409});const stock=Math.max(0,Math.trunc(Number(row.stock_exact)||0));if(stock<qty)return json({ok:false,error:stock<=0?`${String(row.name||row.group_name||'Un producto')} está agotado.`:`Solo quedan ${stock} unidad(es) de ${String(row.name||row.group_name||'un producto')}.`},{status:409})}
 
@@ -105,7 +106,7 @@ async function handlePOST(request:Request){
       return {priceUsd:qualified?wholesale:retail,priceBs:qualified&&Number(row.wholesale_price_bs)>0?Number(row.wholesale_price_bs):Math.max(0,Number(row.price_bs)||0),retailPriceUsd:retail,wholesaleApplied:qualified,discountUsd:qualified?Math.round((retail-wholesale)*item.qty*100)/100:0}
     })()}})
     if(canonical.some((x:any)=>!Number.isFinite(x.priceUsd)||x.priceUsd<=0))return json({ok:false,error:'Hay productos sin precio definido. Deben consultarse antes de finalizar el pedido.'},{status:409})
-    const total=Math.round(canonical.reduce((sum:number,x:any)=>sum+x.priceUsd*x.qty,0)*100)/100,code=requestCode(),itemCount=canonical.reduce((sum:number,x:any)=>sum+x.qty,0)
+    const total=Math.round(canonical.reduce((sum:number,x:any)=>sum+x.priceUsd*x.qty,0)*100)/100,totalBs=currentBs(total,tenant.rate_bs_per_usd),code=requestCode(),itemCount=canonical.reduce((sum:number,x:any)=>sum+x.qty,0)
     const fulfillmentJson=fulfillment==='delivery'?shipping:{...shipping,type:'pickup'}
     const baseInsert={tenant_id:tenant.id,request_code:code,fulfillment_type:fulfillment,items_json:canonical,item_count:itemCount,total_reference_usd:total,source:'web-checkout-v2'}
     const enriched={...baseInsert,customer_json:customer,fulfillment_json:fulfillmentJson,payment_method:payment.label,notes}
@@ -116,7 +117,8 @@ async function handlePOST(request:Request){
     const productLines=canonical.map((x:any,i:number)=>`${i+1}. ${x.name}\n   SKU: ${x.sku}${x.variantLabel?` · ${x.variantLabel}`:''}\n   Cantidad: ${x.qty}\n   ${usd(x.priceUsd)} c/u${x.wholesaleApplied?' (precio al mayor)':''} · ${usd(x.priceUsd*x.qty)}`).join('\n\n')
     const deliveryLines=fulfillment==='delivery'?`Envío por: ${shipping.carrierLabel}\nEstado: ${shipping.state}\nCiudad: ${shipping.city}\nOficina: ${shipping.agency}`:`Modalidad: ${shipping.pickupLabel}${shipping.pickupAddress?`\nLugar: ${shipping.pickupAddress}`:''}${shipping.businessHours?`\nHorario: ${shipping.businessHours}`:''}`
     const shippingCostLine=fulfillment==='delivery'&&commerce.freeShippingEnabled!==false?'\nEnvío: Gratis':''
-    const whatsappText=`🛍️ *NUEVO PEDIDO · ${code}*\n\n*CLIENTE*\n${customer.name}\nTel: ${customer.phone}${customer.documentId?`\nCI/ID: ${customer.documentId}`:''}\n\n*ENTREGA*\n${deliveryLines}\n\n*PRODUCTOS*\n${productLines}\n\n*RESUMEN*\nSubtotal: ${usd(total)}${shippingCostLine}\n*TOTAL REFERENCIAL: ${usd(total)}*\n\n*MÉTODO DE PAGO*\n${payment.label}${notes?`\n\n*OBSERVACIÓN*\n${notes}`:''}\n\nQuedo atento a la confirmación de disponibilidad y datos finales del pedido.`
+    const totalBsLine=totalBs>0?`\nReferencia en Bs: ${bsText(totalBs)} (tasa ${safeText(tenant.rate_source||'BCV',20)}: ${Number(tenant.rate_bs_per_usd).toLocaleString('es-VE')} Bs/USD)`:''
+    const whatsappText=`🛍️ *NUEVO PEDIDO · ${code}*\n\n*CLIENTE*\n${customer.name}\nTel: ${customer.phone}${customer.documentId?`\nCI/ID: ${customer.documentId}`:''}\n\n*ENTREGA*\n${deliveryLines}\n\n*PRODUCTOS*\n${productLines}\n\n*RESUMEN*\nSubtotal: ${usd(total)}${shippingCostLine}\n*TOTAL REFERENCIAL: ${usd(total)}*${totalBsLine}\n\n*MÉTODO DE PAGO*\n${payment.label}${notes?`\n\n*OBSERVACIÓN*\n${notes}`:''}\n\nQuedo atento a la confirmación de disponibilidad y datos finales del pedido.`
     return json({ok:true,requestCode:code,total,itemCount,fulfillment,items:canonical,phone:tenant.phone,publicName:tenant.public_name,commerce,customer,shipping,paymentMethod:payment.label,whatsappText})
   }catch(e){return err(e)}
 }
