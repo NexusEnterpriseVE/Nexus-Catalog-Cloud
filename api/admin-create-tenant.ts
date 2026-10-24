@@ -4,6 +4,8 @@ import { randomSyncToken, requireAdmin, sha256 } from '../server/security.js'
 
 type Input = { slug: string; publicName: string; phone?: string; website?: string; accentColor?: string }
 const SLUG=/^[a-z0-9][a-z0-9-]{1,62}[a-z0-9]$/
+// Slugs que chocarían con rutas internas al servirse como /:slug
+const RESERVED_SLUGS=new Set(['api','assets','catalogo','src','public','admin','pedido'])
 const ACCENT=/^#[0-9a-fA-F]{6}$/
 
 async function handlePOST(request: Request) {
@@ -13,6 +15,7 @@ async function handlePOST(request: Request) {
     const slug = (input.slug || '').trim().toLowerCase()
     const publicName = (input.publicName || '').trim()
     if (!SLUG.test(slug)) return json({ ok: false, error: 'Slug inválido. Usa 3–64 caracteres: letras minúsculas, números y guiones; sin guion al inicio/final.' }, { status: 400 })
+    if (RESERVED_SLUGS.has(slug)) return json({ ok: false, error: 'Ese slug está reservado por la plataforma. Elige otro.' }, { status: 400 })
     if (!publicName || publicName.length > 120) return json({ ok: false, error: 'Nombre público requerido (máx. 120 caracteres).' }, { status: 400 })
     const accent=(input.accentColor || '#2563EB').trim()
     if(!ACCENT.test(accent)) return json({ok:false,error:'Color de acento inválido.'},{status:400})

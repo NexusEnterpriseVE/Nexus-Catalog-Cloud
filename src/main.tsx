@@ -56,11 +56,16 @@ type StoredProduct={id:number;name:string;sku:string;brand?:string;model?:string
 type OrderItem=StoredProduct&{qty:number}
 type AnalyticsEvent='catalog_view'|'product_view'|'search'|'whatsapp_consult'|'whatsapp_order'|'share'|'favorite'|'category_view'|'add_to_list'
 
+const RESERVED_PATHS=new Set(['api','assets','catalogo','src','public'])
 function pathInfo(){
   const product=location.pathname.match(/^\/(?:c|catalogo)\/([^/]+)\/p\/(\d+)/)
   if(product)return{slug:decodeURIComponent(product[1]),productId:Number(product[2])}
   const collection=location.pathname.match(/^\/(?:c|catalogo)\/([^/]+)/)
-  return{slug:decodeURIComponent(collection?.[1]||new URLSearchParams(location.search).get('slug')||''),productId:null as number|null}
+  if(collection)return{slug:decodeURIComponent(collection[1]),productId:null as number|null}
+  // Rutas cortas: /:slug y /:slug/p/:id (mismo patrón de slug que valida /api/catalog)
+  const short=location.pathname.match(/^\/([a-z0-9][a-z0-9-]{1,62}[a-z0-9])(?:\/p\/(\d+))?(?:\/|$)/)
+  if(short&&!RESERVED_PATHS.has(short[1]))return{slug:short[1],productId:short[2]?Number(short[2]):null}
+  return{slug:new URLSearchParams(location.search).get('slug')||'',productId:null as number|null}
 }
 function money(v:number,currency='USD'){
   try{return new Intl.NumberFormat('es-VE',{style:'currency',currency,maximumFractionDigits:2}).format(v||0)}
@@ -98,10 +103,18 @@ function normalizeWhatsAppPhone(v=''){
   if(/^4\d{9}$/.test(p))return `58${p}`
   return p
 }
-function productUrl(slug:string,id:number){return `/c/${encodeURIComponent(slug)}/p/${id}`}
+// Enlaces cortos; /c/:slug y /catalogo/:slug siguen funcionando como rutas heredadas.
+function productUrl(slug:string,id:number){return `/${encodeURIComponent(slug)}/p/${id}`}
 function collectionUrl(slug:string,params:Record<string,string>={}){
   const q=new URLSearchParams(params).toString()
-  return `/c/${encodeURIComponent(slug)}${q?`?${q}`:''}`
+  return `/${encodeURIComponent(slug)}${q?`?${q}`:''}`
+}
+const CANONICAL_ORIGIN='https://catalogocuyra.vercel.app'
+function setCanonical(){
+  const {slug,productId}=pathInfo();if(!slug)return
+  let link=document.querySelector('link[rel="canonical"]') as HTMLLinkElement|null
+  if(!link){link=document.createElement('link');link.rel='canonical';document.head.appendChild(link)}
+  link.href=CANONICAL_ORIGIN+(productId?productUrl(slug,productId):collectionUrl(slug))
 }
 function stockLabel(tenant:Tenant,p:Product|Variant){
   if(tenant.show_stock_mode==='hidden')return ''
@@ -139,7 +152,7 @@ function useMotionReveal(trigger:unknown){
   },[trigger])
 }
 function setPageSeo(title:string,description:string,image?:string|null){
-  document.title=title;setMeta('description',description);setMeta('og:title',title,true);setMeta('og:description',description,true);setMeta('og:url',location.href,true)
+  document.title=title;setMeta('description',description);setMeta('og:title',title,true);setMeta('og:description',description,true);setMeta('og:url',location.href,true);setCanonical()
   if(image)setMeta('og:image',image,true)
 }
 function track(slug:string,event:AnalyticsEvent,data:Record<string,unknown>={}){
