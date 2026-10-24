@@ -14,6 +14,16 @@
   --accent-soft:color-mix(in oklab,var(--accent) 9%,var(--surface));
   --accent-glow:0 10px 24px -10px color-mix(in oklab,var(--accent) 70%,transparent);
 }
+/* Texto sobre el acento: blanco en acentos oscuros, casi negro en claros (p. ej. amarillo).
+   Se declara en .app para resolverse con el acento de la empresa activa. */
+.app,.iv-topline{--accent:var(--tenant-accent,#1368ff);--on-accent:#fff;--accent-btn:var(--accent)}
+@supports (color:oklch(from red l c h)){
+  /* Acentos claros (L > 0,7): mismo color con texto oscuro. Acentos medios: se limita
+     la luminosidad a 0,56 para que el texto blanco supere 4,5:1 (rojo Daca 4,0 → 5,5). */
+  .app,.iv-topline{
+    --on-accent:oklch(from var(--accent) clamp(0.16,(0.7 - l) * 1000,1) 0 0);
+    --accent-btn:oklch(from var(--accent) min(l,calc(0.56 + clamp(0,(l - 0.7) * 1000,1) * (l - 0.56))) c h)}
+}
 :root[data-theme="dark"]{
   --shadow-card:0 0 0 1px rgb(255 255 255 / .06),0 12px 32px -16px rgb(0 0 0 / .7);
   --shadow-card-hover:0 0 0 1px rgb(255 255 255 / .1),0 28px 56px -22px rgb(0 0 0 / .85);
@@ -59,7 +69,7 @@
 /* ---------- Botones ---------- */
 .app :is(.iv-primary-pill,.v5-card-primary,.primary-action,.drawer-primary,.checkout-whatsapp){
   border-radius:var(--radius-pill)!important;font-weight:650!important;letter-spacing:-.005em!important;
-  background:var(--accent)!important;color:#fff!important;border:0!important;box-shadow:var(--accent-glow)!important}
+  background:var(--accent-btn)!important;color:var(--on-accent)!important;border:0!important;box-shadow:var(--accent-glow)!important}
 .app :is(.iv-secondary-pill,.drawer-secondary,.purchase-secondary>button,.purchase-secondary>a){
   border-radius:var(--radius-pill)!important;background:var(--surface)!important;color:var(--text)!important;border:1px solid var(--line)!important;box-shadow:none!important}
 @media (hover:hover) and (pointer:fine){
@@ -89,7 +99,7 @@
 }
 .app .iv-card-badge{border-radius:var(--radius-pill)!important;font-size:10.5px!important;font-weight:700!important;letter-spacing:.02em!important;padding:4px 9px!important;border:0!important;
   background:rgb(var(--n-0-rgb) / .9)!important;color:var(--text)!important;box-shadow:0 2px 8px -4px rgb(15 23 42 / .3)}
-.app .iv-card-badge.promo{background:var(--accent)!important;color:#fff!important}
+.app .iv-card-badge.promo{background:var(--accent-btn)!important;color:var(--on-accent)!important}
 .app .v5-favorite{width:36px!important;height:36px!important;border-radius:50%!important;border:0!important;background:rgb(var(--n-0-rgb) / .86)!important;color:var(--text-muted)!important;
   -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 4px 12px -6px rgb(15 23 42 / .35)!important}
 .app .v5-favorite.active{color:var(--accent)!important}
@@ -113,7 +123,7 @@
 .app .v5-card-primary{position:relative;overflow:hidden;min-height:44px!important;display:inline-grid!important;place-items:center}
 .app .v5-card-primary>.btn-label,.app .v5-card-primary>.btn-done{grid-area:1/1;display:inline-flex;align-items:center;gap:6px;transition:transform 260ms var(--ease-out),opacity 200ms ease}
 .app .v5-card-primary>.btn-done{opacity:0;transform:translateY(110%)}
-.app .v5-card-primary.is-added{background:var(--status-success)!important;box-shadow:0 10px 24px -12px color-mix(in oklab,var(--status-success) 80%,transparent)!important}
+.app .v5-card-primary.is-added{color:#fff!important;background:var(--status-success)!important;box-shadow:0 10px 24px -12px color-mix(in oklab,var(--status-success) 80%,transparent)!important}
 .app .v5-card-primary.is-added>.btn-label{opacity:0;transform:translateY(-110%)}
 .app .v5-card-primary.is-added>.btn-done{opacity:1;transform:none}
 :root[data-theme="dark"] .app .v5-card-primary.is-added{background:#15803d!important}
