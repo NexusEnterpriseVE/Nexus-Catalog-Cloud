@@ -1,6 +1,6 @@
 // Offline regression tests. Run: node scripts/qa/qa_v63_mobile_wholesale.cjs
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
-const ts=require('/opt/nvm/versions/node/v22.16.0/lib/node_modules/typescript');
+const ts=require('typescript');
 const root=path.join(__dirname,'../..');
 const source=fs.readFileSync(path.join(root,'server/catalog-v4.ts'),'utf8');
 const transpiled=ts.transpileModule(source,{fileName:'catalog-v4.ts',compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
