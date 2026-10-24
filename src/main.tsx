@@ -15,9 +15,10 @@ import './v6.css'
 import './v6-complete.css'
 import './v6-3-mobile.css'
 import './theme.css'
+import './premium.css'
 
-// Tema claro/oscuro: index.html aplica el tema antes del primer pintado (sin destellos);
-// aquí solo se cambia y se recuerda la elección del usuario.
+// Tema: claro por defecto; oscuro solo si el usuario lo elige. index.html lo aplica
+// antes del primer pintado (sin destellos); aquí solo se cambia y se recuerda.
 type ThemeMode='light'|'dark'
 const THEME_KEY='cuyra-theme'
 function currentTheme():ThemeMode{return document.documentElement.dataset.theme==='dark'?'dark':'light'}
@@ -31,11 +32,6 @@ function applyTheme(mode:ThemeMode,persist:boolean){
 }
 function ThemeToggle({floating=false}:{floating?:boolean}){
   const[mode,setMode]=useState<ThemeMode>(currentTheme)
-  useEffect(()=>{
-    const mq=matchMedia('(prefers-color-scheme: dark)')
-    const onChange=(e:MediaQueryListEvent)=>{let saved:string|null=null;try{saved=localStorage.getItem(THEME_KEY)}catch{};if(saved)return;const m:ThemeMode=e.matches?'dark':'light';applyTheme(m,false);setMode(m)}
-    mq.addEventListener('change',onChange);return()=>mq.removeEventListener('change',onChange)
-  },[])
   const next:ThemeMode=mode==='dark'?'light':'dark',label=next==='dark'?'Activar modo oscuro':'Activar modo claro'
   return <button type="button" className={`theme-toggle${floating?' cuyra-theme-float':''}`} onClick={()=>{applyTheme(next,true);setMode(next)}} aria-label={label} title={label}><Sun className="icon-sun" aria-hidden="true"/><Moon className="icon-moon" aria-hidden="true"/></button>
 }
@@ -255,12 +251,13 @@ function useNavFacets(slug:string,enabled:boolean){
 
 type HeaderProps={tenant:Tenant|null;facets?:NavFacets;favoriteCount?:number;orderCount?:number;onFavorites?:()=>void;onOrder?:()=>void}
 function Header({tenant,facets,favoriteCount=0,orderCount=0,onFavorites,onOrder}:HeaderProps){
-  const[searchOpen,setSearchOpen]=useState(false),[headerQ,setHeaderQ]=useState('')
+  const[searchOpen,setSearchOpen]=useState(false),[headerQ,setHeaderQ]=useState(''),[scrolled,setScrolled]=useState(false)
+  useEffect(()=>{let raf=0;const on=()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>setScrolled(window.scrollY>8))};on();window.addEventListener('scroll',on,{passive:true});return()=>{cancelAnimationFrame(raf);window.removeEventListener('scroll',on)}},[])
   const slug=tenant?.slug||''
   const submitSearch=(e:React.FormEvent)=>{e.preventDefault();const q=headerQ.trim();if(!q)return;location.href=`${collectionUrl(slug,{q})}#productos`}
   return <>
     <AnnouncementBar tenant={tenant}/>
-    <header className="iv-header"><div className="iv-header-inner">
+    <header className={`iv-header${scrolled?' is-scrolled':''}`}><div className="iv-header-inner">
       <a className="iv-header-brand" href={tenant?collectionUrl(slug):'/'} aria-label={tenant?`${tenant.public_name}, inicio`:'CUYRA Catalog'}>
         {tenant?.logo_url?<img src={tenant.logo_url} alt={tenant.public_name}/>:tenant?<span className="iv-logo-fallback">{tenant.public_name.slice(0,1).toUpperCase()}</span>:<CuyraMark/>}
         {tenant&&!tenant.logo_url&&<strong>{tenant.public_name}</strong>}
@@ -276,7 +273,7 @@ function Header({tenant,facets,favoriteCount=0,orderCount=0,onFavorites,onOrder}
       {tenant&&<div className="iv-header-actions">
         <form className="v6-header-search" role="search" onSubmit={submitSearch}><Search size={17} aria-hidden="true"/><input value={headerQ} onChange={e=>setHeaderQ(e.target.value)} aria-label="Buscar productos" placeholder="Buscar productos, marcas o SKU"/><button type="submit" aria-label="Buscar"><ArrowRight size={16}/></button></form>
         <button onClick={()=>setSearchOpen(true)} aria-label="Buscar productos"><Search size={19}/></button>
-        <button onClick={onOrder} aria-label="Carrito"><ShoppingBag size={19}/>{orderCount>0&&<b>{orderCount}</b>}</button>
+        <button onClick={onOrder} aria-label="Carrito"><ShoppingBag size={19}/>{orderCount>0&&<b key={orderCount} className="cart-count">{orderCount}</b>}</button>
         <ThemeToggle/>
       </div>}
     </div></header>
@@ -358,7 +355,7 @@ function BrandCarousel({tenant,brands,active,onSelect}:{tenant:Tenant;brands:str
 
 function CategoryRail({categories,active,onSelect}:{categories:string[];active:string;onSelect:(category:string)=>void}){
   if(!categories.length)return null
-  return <div className="iv-category-pills"><button className={!active?'active':''} onClick={()=>onSelect('')}>Todos</button>{categories.map(x=><button key={x} className={active===x?'active':''} onClick={()=>onSelect(x)}>{x}</button>)}</div>
+  return <div className="iv-category-pills"><button className={!active?'active':''} aria-pressed={!active} onClick={()=>onSelect('')}>Todos</button>{categories.map(x=><button key={x} className={active===x?'active':''} aria-pressed={active===x} onClick={()=>onSelect(x)}>{x}</button>)}</div>
 }
 
 function RatingLine({product:p,large=false}:{product:Product;large?:boolean}){
@@ -417,6 +414,8 @@ function ProductCard({tenant,product:p,isFavorite,onFavorite,onAdd}:{tenant:Tena
   const productHref=productUrl(tenant.slug,p.source_product_id),ratingCount=Number(p.rating_count||0),stars=Math.round(Number(p.rating_value||0))
   const promoLabel=p.promo_badge||((discount>0)?`-${discount}%`:'')
   const hasVariants=Number(p.variant_count||0)>1
+  const[added,setAdded]=useState(false)
+  useEffect(()=>{if(!added)return;const t=setTimeout(()=>setAdded(false),1400);return()=>clearTimeout(t)},[added])
   return <article className={`iv-product-card v5-product-card ${out?'is-out':''}`}>
     <div className="iv-card-media v5-card-media"><a href={productHref} aria-label={`Ver ${p.name}`} onClick={()=>track(tenant.slug,'product_view',{productId:p.source_product_id,source:'card'})}>{p.image_url?<img src={p.image_url} alt={p.name} loading="lazy" decoding="async"/>:<span className="iv-card-placeholder"><PackageSearch size={37}/></span>}</a>
       <div className="v5-card-badges">{promoLabel&&<span className="iv-card-badge promo">{promoLabel}</span>}{(p.recommended||p.featured)&&<span className="iv-card-badge">{p.recommended?'Recomendado':'Destacado'}</span>}</div>
@@ -424,13 +423,13 @@ function ProductCard({tenant,product:p,isFavorite,onFavorite,onAdd}:{tenant:Tena
       {out&&tenant.show_stock_mode!=='hidden'&&<div className="iv-card-soldout"><span>Agotado</span></div>}
     </div>
     <div className="iv-card-body v5-card-content"><span className="iv-card-brand">{p.brand||p.category||'Catálogo'}</span><a className="iv-card-name" href={productHref}>{p.name}</a>
-      <a className="v5-mini-rating" href={`${productHref}#opiniones`} aria-label={`Ver opiniones de ${p.name}`}><span className="v5-mini-stars">{[1,2,3,4,5].map(i=><Star key={i} size={12} fill={ratingCount&&i<=stars?'currentColor':'none'}/>)}</span><b>{ratingCount?Number(p.rating_value||0).toFixed(1):'Nuevo'}</b><small>{ratingCount?`(${ratingCount})`:'Sin reseñas'}</small></a>
-      <div className="v5-card-bottom"><div className="v5-card-pricing"><span>{p.has_price_range?'Desde':'Precio detal'}</span>{p.compare_at_price_usd&&p.compare_at_price_usd>p.price_usd&&p.price_usd>0&&<del>{money(p.compare_at_price_usd)}</del>}<strong>{priced?money(p.price_usd):'Consultar'}</strong>{priced&&p.price_bs>0&&<small>{bs(p.price_bs)}</small>}</div>{commerce.showWholesalePrice!==false&&wholesale.eligible&&<div className="v5-wholesale v63-card-wholesale" aria-label={`Precio al mayor: ${money(wholesale.wholesalePrice)} por unidad, desde ${wholesale.minimum} unidades`}>
+      {ratingCount>0&&<a className="v5-mini-rating" href={`${productHref}#opiniones`} aria-label={`${Number(p.rating_value||0).toFixed(1)} de 5, ${ratingCount} opiniones de ${p.name}`}><span className="v5-mini-stars">{[1,2,3,4,5].map(i=><Star key={i} size={12} fill={i<=stars?'currentColor':'none'}/>)}</span><b>{Number(p.rating_value||0).toFixed(1)}</b><small>({ratingCount})</small></a>}
+      <div className="v5-card-bottom"><div className="v5-card-pricing">{p.has_price_range&&<span>Desde</span>}{p.compare_at_price_usd&&p.compare_at_price_usd>p.price_usd&&p.price_usd>0&&<del>{money(p.compare_at_price_usd)}</del>}<strong>{priced?money(p.price_usd):'Consultar'}</strong>{priced&&p.price_bs>0&&<small>{bs(p.price_bs)}</small>}</div>{commerce.showWholesalePrice!==false&&wholesale.eligible&&<div className="v5-wholesale v63-card-wholesale" aria-label={`Precio al mayor: ${money(wholesale.wholesalePrice)} por unidad, desde ${wholesale.minimum} unidades`}>
           <span className="v63-wholesale-kicker"><Boxes size={13}/>{commerce.wholesaleLabel||'Precio al mayor'}</span>
           <div className="v63-wholesale-inline"><b>{money(wholesale.wholesalePrice)} <em>/u</em></b><strong>Desde {wholesale.minimum} uds.</strong></div>
           <small>Ahorra {money(wholesale.savingPerUnit)} por unidad{p.wholesale_variant_label&&Number(p.variant_count)>1?` · ${p.wholesale_variant_label}`:''}</small>
         </div>}</div>
-      <div className="v5-card-actions">{out?<a className="v5-card-primary ghost" href={productHref}>Ver producto <ArrowRight size={16}/></a>:!priced?<a className="v5-card-primary ghost" href={productHref}>Consultar <ArrowRight size={16}/></a>:hasVariants?<a className="v5-card-primary" href={productHref}>Elegir opción <ArrowRight size={16}/></a>:<button className="v5-card-primary" onClick={()=>onAdd(p)} type="button"><Plus size={16}/> Agregar</button>}<a className="v5-card-detail" href={productHref} aria-label="Ver detalles"><ArrowRight size={18}/></a></div>
+      <div className="v5-card-actions">{out?<a className="v5-card-primary ghost" href={productHref}>Ver producto <ArrowRight size={16}/></a>:!priced?<a className="v5-card-primary ghost" href={productHref}>Consultar <ArrowRight size={16}/></a>:hasVariants?<a className="v5-card-primary" href={productHref}>Elegir opción <ArrowRight size={16}/></a>:<button className={`v5-card-primary${added?' is-added':''}`} onClick={()=>{onAdd(p);setAdded(true)}} type="button" aria-live="polite"><span className="btn-label"><Plus size={16} aria-hidden="true"/> Agregar</span><span className="btn-done" aria-hidden={!added}><Check size={16} aria-hidden="true"/> Agregado</span></button>}<a className="v5-card-detail" href={productHref} aria-label="Ver detalles"><ArrowRight size={18}/></a></div>
     </div>
   </article>
 }
