@@ -4,6 +4,10 @@
   ],
   "rewrites": [
     {
+      "source": "/favicon.ico",
+      "destination": "/cuyra-icon-64.png"
+    },
+    {
       "source": "/c/:slug",
       "destination": "/index.html"
     },
