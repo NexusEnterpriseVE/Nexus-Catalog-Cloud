@@ -120,7 +120,9 @@
 .app .v63-wholesale-inline strong{background:var(--surface)!important;color:var(--text)!important}
 
 /* Botón principal de la tarjeta: "Agregar" → "Agregado" (feedback, 1,4 s) */
-.app .v5-card-primary{position:relative;overflow:hidden;min-height:44px!important;display:inline-grid!important;place-items:center}
+.app .v5-card-primary{position:relative;overflow:hidden;min-height:44px!important;display:inline-flex!important;flex-direction:row!important;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+/* Solo el botón Agregar apila sus dos estados en la misma celda */
+.app button.v5-card-primary{display:inline-grid!important;place-items:center}
 .app .v5-card-primary>.btn-label,.app .v5-card-primary>.btn-done{grid-area:1/1;display:inline-flex;align-items:center;gap:6px;transition:transform 260ms var(--ease-out),opacity 200ms ease}
 .app .v5-card-primary>.btn-done{opacity:0;transform:translateY(110%)}
 .app .v5-card-primary.is-added{color:#fff!important;background:var(--status-success)!important;box-shadow:0 10px 24px -12px color-mix(in oklab,var(--status-success) 80%,transparent)!important}
@@ -206,3 +208,12 @@
 
 /* Enlace de opiniones: área táctil mínima de 24 px (WCAG 2.2, 2.5.8) */
 .app .v5-mini-rating{min-height:24px!important;display:inline-flex!important;align-items:center;gap:4px}
+
+/* Tarjeta: cuando la acción principal ya es un enlace con flecha, ocupa todo el ancho */
+.app .v5-card-actions.is-single{display:flex!important}
+.app .v5-card-actions.is-single>.v5-card-primary{flex:1 1 auto;width:100%!important}
+
+/* Crédito del desarrollador: discreto, al pie */
+.dev-credit{margin:0;padding:14px 16px calc(14px + env(safe-area-inset-bottom));text-align:center;font:500 12px/1.5 var(--font-ui);color:var(--text-muted);border-top:1px solid var(--line);letter-spacing:.01em}
+.dev-credit b{font-weight:650;color:var(--text)}
+@media (max-width:860px){.dev-credit{padding-bottom:calc(84px + env(safe-area-inset-bottom))}}
