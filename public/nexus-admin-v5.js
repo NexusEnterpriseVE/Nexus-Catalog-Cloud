@@ -62,7 +62,6 @@
     function showTab(tab){if(!labels[tab])tab='general';document.querySelectorAll('[data-tab]').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-current',b.dataset.tab===tab?'page':'false')});document.querySelectorAll('[data-panel]').forEach(el=>el.classList.toggle('active',el.dataset.panel===tab));$('v5-section-title').textContent=labels[tab][0];$('v5-section-desc').textContent=labels[tab][1];$('v51-crumb-current').textContent=labels[tab][0];$('v51-refresh-products').hidden=tab!=='productos';try{history.replaceState(null,'','#'+tab)}catch{};if(tab==='productos'&&!state.products.length&&$('secret').value.trim()&&$('slug').value.trim())$('loadMerchandising').click()}
     side.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.tab)));
     showTab(location.hash.replace('#','')||'productos');
-    document.documentElement.dataset.theme='light';
     $('v51-toggle-connection').addEventListener('click',()=>{session.open=!session.open;if(session.open)session.querySelector('input')?.focus()});
     $('v51-refresh-products').addEventListener('click',()=>{if(!$('secret').value.trim()||!$('slug').value.trim()){session.open=true;session.querySelector('input')?.focus();return}$('loadMerchandising').click()});
     $('v51-jump-products').addEventListener('click',()=>showTab('productos'));
